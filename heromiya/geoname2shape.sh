@@ -37,6 +37,8 @@ DROP TABLE IF EXISTS xepon;
 .loadshp ../Data/targetExtents/Ubon_Rachathani ubon_rachathani UTF-8 4326
 .loadshp ../Data/targetExtents/Ratchaburi ratchaburi UTF-8 4326
 .loadshp ../Data/targetExtents/Xepon xepon UTF-8 4326
+.loadshp ../Data/targetExtents/Kwale_Area kwale UTF-8 4326
+
 DROP TABLE IF EXISTS target_extent;
 CREATE TABLE target_extent (
 	gid integer primary key AUTOINCREMENT
@@ -47,6 +49,7 @@ INSERT INTO target_extent (the_geom) SELECT geometry from savannakhet;
 INSERT INTO target_extent (the_geom) SELECT geometry from ubon_rachathani;
 INSERT INTO target_extent (the_geom) SELECT geometry from ratchaburi;
 INSERT INTO target_extent (the_geom) SELECT geometry from xepon;
+INSERT INTO target_extent (the_geom) SELECT geometry from kwale;
 
 EOF
 
