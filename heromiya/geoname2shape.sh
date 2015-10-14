@@ -32,12 +32,13 @@ DROP TABLE IF EXISTS savannakhet;
 DROP TABLE IF EXISTS ubon_rachathani;
 DROP TABLE IF EXISTS ratchaburi;
 DROP TABLE IF EXISTS xepon;
+DROP TABLE IF EXISTS kwale;
 
 .loadshp ../Data/targetExtents/Savannakhet savannakhet UTF-8 4326
 .loadshp ../Data/targetExtents/Ubon_Rachathani ubon_rachathani UTF-8 4326
 .loadshp ../Data/targetExtents/Ratchaburi ratchaburi UTF-8 4326
 .loadshp ../Data/targetExtents/Xepon xepon UTF-8 4326
-.loadshp ../Data/targetExtents/Kwale_Area kwale UTF-8 4326
+.loadshp ../Data/targetExtents/Kwale_Area kwale UTF-8 4326 Geometry gid POLYGON 2d
 
 DROP TABLE IF EXISTS target_extent;
 CREATE TABLE target_extent (

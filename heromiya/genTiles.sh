@@ -14,7 +14,7 @@ CREATE TABLE tiles (
 SELECT AddGeometryColumn('tiles', 'the_geom' ,4326, 'POLYGON', 'XY');
 EOF
 
-for ROI in `cat ROI.lst`; do
+for ROI in `cat ROI.lst | head -n 1`; do
 	LONMIN=`echo $ROI | cut -f 2 -d '|'`
 	LATMIN=`echo $ROI | cut -f 3 -d '|'`
 	LONMAX=`echo $ROI | cut -f 4 -d '|'`
