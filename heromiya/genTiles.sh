@@ -1,7 +1,7 @@
 #! /bin/bash
 
 ZLEVEL=15 # Tile size is 1223 x 1223 m
-PREREQ="var tilebelt = require('tilebelt');"
+PREREQ="var tilebelt = require('./tilebelt');"
 DB=geonames.sqlite
 
 spatialite $DB <<EOF

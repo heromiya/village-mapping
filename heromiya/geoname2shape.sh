@@ -39,6 +39,7 @@ DROP TABLE IF EXISTS kwale;
 .loadshp ../Data/targetExtents/Ratchaburi ratchaburi UTF-8 4326
 .loadshp ../Data/targetExtents/Xepon xepon UTF-8 4326
 .loadshp ../Data/targetExtents/Kwale_Area kwale UTF-8 4326 Geometry gid POLYGON 2d
+.loadshp ../Data/targetExtents/Yangon_East yangon_east UTF-8 4326 Geometry gid POLYGON 2d
 
 DROP TABLE IF EXISTS target_extent;
 CREATE TABLE target_extent (
@@ -51,10 +52,11 @@ INSERT INTO target_extent (the_geom) SELECT geometry from ubon_rachathani;
 INSERT INTO target_extent (the_geom) SELECT geometry from ratchaburi;
 INSERT INTO target_extent (the_geom) SELECT geometry from xepon;
 INSERT INTO target_extent (the_geom) SELECT geometry from kwale;
+INSERT INTO target_extent (the_geom) SELECT geometry from yangon_east;
 
 EOF
 
-for TXT in ../Data/geonames/LA/LA.txt ../Data/geonames/TH/TH.txt ../Data/geonames/KE/KE.txt; do
+for TXT in ../Data/geonames/LA/LA.txt ../Data/geonames/TH/TH.txt ../Data/geonames/KE/KE.txt ../Data/geonames/MM/MM.txt ; do
 	TABNAME=geonames_`basename $TXT | sed 's/\.txt//g'`
 #`echo $TXT | sed 's/\.txt/\.sqlite/g'`
 	spatialite geonames.sqlite  <<EOF
