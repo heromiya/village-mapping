@@ -22,10 +22,10 @@ export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.
 #:<<EOF
 
 rm -f tmp.txt
-for ARGS in `iojs get.BingAerial.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL`; do
+for ARGS in `iojs ../get.BingAerial.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL`; do
     QKEY=`echo $ARGS | cut -d ',' -f 1`
-    if [ `stat -c "%s" Bing/gtiff/$ZLEVEL/a${QKEY}.tif` -ne 3169 ]; then
-	echo Bing/gtiff/$ZLEVEL/a${QKEY}.tif >> tmp.txt
+    if [ `stat -c "%s" ../Bing/gtiff/$ZLEVEL/a${QKEY}.tif` -ne 3169 ]; then
+	echo ../Bing/gtiff/$ZLEVEL/a${QKEY}.tif >> tmp.txt
     fi
 done
 gdalbuildvrt -overwrite -input_file_list tmp.txt tmp_bing.vrt
