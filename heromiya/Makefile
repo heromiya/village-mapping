@@ -10,3 +10,6 @@ Bing/jpeg/$(ZLEVEL)/a$(QKEY).jpeg:
 Bing/gtiff/$(ZLEVEL)/a$(QKEY).tif: Bing/jpeg/$(ZLEVEL)/a$(QKEY).jpeg
 	mkdir -p `dirname $@`
 	gdal_translate -a_ullr $(XMIN) $(YMAX) $(XMAX) $(YMIN) -a_srs EPSG:3857 -co COMPRESS=Deflate $< $@
+
+$(MERGEDTILE): $(MERGEINPUT)
+	gdalwarp $+ $@
