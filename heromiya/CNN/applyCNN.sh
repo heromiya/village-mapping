@@ -5,10 +5,10 @@
 #LONMAX=104.846
 #LATMAX=16.611
 
-LONMIN=104.8026
-LATMIN=16.5704
-LONMAX=104.8151
-LATMAX=16.5783
+LONMIN=99.7027
+LATMIN=13.7674
+LONMAX=99.7079
+LATMAX=13.7706
 
 export ZLEVEL=19
 export WINSIZE=18
@@ -19,7 +19,7 @@ export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.
 
 #ls -l | awk '$5 != 3169 { print $9 }' | grep -v -e '^$' -e 'txt' > Z19.txt
 #gdalbuildvrt -input_file_list Z19.txt Z19.vrt
-#:<<EOF
+:<<'#EOF'
 
 rm -f tmp.txt
 for ARGS in `iojs ../get.BingAerial.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL`; do
@@ -31,26 +31,25 @@ done
 gdalbuildvrt -overwrite -input_file_list tmp.txt tmp_bing.vrt
 gdal_translate -co Compress=Deflate tmp_bing.vrt tmp_bing.tif
 gdalinfo tmp_bing.vrt > tmp_bing.vrt.info
+#EOF
 
 export XMIN=`grep "Upper Left"  tmp_bing.vrt.info | sed 's/^Upper Left  (\([-.0-9]*\), \([-.0-9]*\)) .*/\1/g'`
 export YMIN=`grep "Lower Right" tmp_bing.vrt.info | sed 's/^Lower Right (\([-.0-9]*\), \([-.0-9]*\)) .*/\2/g'`
 export XMAX=`grep "Lower Right" tmp_bing.vrt.info | sed 's/^Lower Right (\([-.0-9]*\), \([-.0-9]*\)) .*/\1/g'`
 export YMAX=`grep "Upper Left"  tmp_bing.vrt.info | sed 's/^Upper Left  (\([-.0-9]*\), \([-.0-9]*\)) .*/\2/g'`
 
-#EOF
-
 export XRES=`grep "Pixel Size"  tmp_bing.vrt.info | sed 's/Pixel Size = (\([-.0-9]*\),\([-.0-9]*\))/\1/'`
 export YRES=`grep "Pixel Size"  tmp_bing.vrt.info | sed 's/Pixel Size = (\([-.0-9]*\),\([-.0-9]*\))/\2/; s/-//'`
-
-:<<EOF
+eval `g.gisenv`
+:<<'#EOF'
 g.proj -c proj4="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs <>"
 g.region n=$YMAX s=$YMIN e=$XMAX w=$XMIN nsres=$YRES ewres=$XRES --overwrite
 #r.external -o input=tmp_bing.vrt output=bing --overwrite
 r.in.gdal -ok input=tmp_bing.vrt output=bing --overwrite
-v.in.ogr -o dsn=gt/merge.shp output=gt type=boundary --overwrite
+db.connect driver=sqlite database=$GISDBASE/$LOCATION_NAME/$MAPSET/db.sqlite
+v.in.ogr -o dsn=../working_polygon.sqlite output=gt layer=working_polygon type=boundary --overwrite
 v.to.rast input=gt type=area output=gt_rast use=val --overwrite
 r.null map=gt_rast null=0
-EOF
 
 mkdir -p sample_tmp
 rm -f sample_tmp/*
@@ -70,7 +69,8 @@ for MASKVAL in 0 1; do
     v.db.select -c  map=gt_sample_$MASKVAL columns=x,y | xargs parallel --jobs 20% ./collect_sample.sh :::
 done
 
-cat sample_tmp/*_merge.txt | grep -v \* | sed 's/||/|/g; s/|$//g' > training_sample.txt
+cat sample_tmp/*_merge.txt | grep -v \* | sed 's/||/|/g; s/|$//g' > training_sample.tx
+#EOF
 
 octave buildKnowledgeBase.m
 octave cnnclassify.m
