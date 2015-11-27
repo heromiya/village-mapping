@@ -14,7 +14,7 @@ CREATE TABLE tiles (
 SELECT AddGeometryColumn('tiles', 'the_geom' ,4326, 'POLYGON', 'XY');
 EOF
 
-for ROI in `cat ROI.lst | head -n 1`; do
+for ROI in `cat ROI.lst`; do
 	LONMIN=`echo $ROI | cut -f 2 -d '|'`
 	LATMIN=`echo $ROI | cut -f 3 -d '|'`
 	LONMAX=`echo $ROI | cut -f 4 -d '|'`
@@ -46,6 +46,44 @@ CREATE TABLE target_tiles (
 );
 SELECT AddGeometryColumn('target_tiles', 'the_geom' ,4326, 'POLYGON', 'XY');
 INSERT INTO target_tiles (qkey, the_geom) SELECT DISTINCT tiles.qkey,tiles.the_geom FROM tiles,geonames_ppl WHERE ST_Intersects(tiles.the_geom,geonames_ppl.the_geom_buf);
+
+
+DELETE FROM geometry_columns WHERE f_table_name = 'target_tiles_la';
+DROP TABLE IF EXISTS target_tiles_la;
+CREATE TABLE target_tiles_la (
+	gid integer primary key AUTOINCREMENT,
+	qkey varchar(64)
+);
+SELECT AddGeometryColumn('target_tiles_la', 'the_geom' ,4326, 'POLYGON', 'XY');
+INSERT INTO target_tiles_la (qkey, the_geom) SELECT DISTINCT tiles.qkey,tiles.the_geom FROM tiles,geonames_ppl WHERE ST_Intersects(tiles.the_geom,geonames_ppl.the_geom_buf) AND geonames_ppl.country_code = 'LA';
+
+DELETE FROM geometry_columns WHERE f_table_name = 'target_tiles_th';
+DROP TABLE IF EXISTS target_tiles_th;
+CREATE TABLE target_tiles_th (
+	gid integer primary key AUTOINCREMENT,
+	qkey varchar(64)
+);
+SELECT AddGeometryColumn('target_tiles_th', 'the_geom' ,4326, 'POLYGON', 'XY');
+INSERT INTO target_tiles_th (qkey, the_geom) SELECT DISTINCT tiles.qkey,tiles.the_geom FROM tiles,geonames_ppl WHERE ST_Intersects(tiles.the_geom,geonames_ppl.the_geom_buf) AND geonames_ppl.country_code = 'TH';
+
+DELETE FROM geometry_columns WHERE f_table_name = 'target_tiles_ke';
+DROP TABLE IF EXISTS target_tiles_ke;
+CREATE TABLE target_tiles_ke (
+	gid integer primary key AUTOINCREMENT,
+	qkey varchar(64)
+);
+SELECT AddGeometryColumn('target_tiles_ke', 'the_geom' ,4326, 'POLYGON', 'XY');
+INSERT INTO target_tiles_ke (qkey, the_geom) SELECT DISTINCT tiles.qkey,tiles.the_geom FROM tiles,geonames_ppl WHERE ST_Intersects(tiles.the_geom,geonames_ppl.the_geom_buf) AND geonames_ppl.country_code = 'KE';
+
+DELETE FROM geometry_columns WHERE f_table_name = 'target_tiles_mm';
+DROP TABLE IF EXISTS target_tiles_mm;
+CREATE TABLE target_tiles_mm (
+	gid integer primary key AUTOINCREMENT,
+	qkey varchar(64)
+);
+SELECT AddGeometryColumn('target_tiles_mm', 'the_geom' ,4326, 'POLYGON', 'XY');
+INSERT INTO target_tiles_mm (qkey, the_geom) SELECT DISTINCT tiles.qkey,tiles.the_geom FROM tiles,geonames_ppl WHERE ST_Intersects(tiles.the_geom,geonames_ppl.the_geom_buf) AND geonames_ppl.country_code = 'MM';
+
 EOF
 
 exit 0
