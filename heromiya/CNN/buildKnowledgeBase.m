@@ -5,8 +5,8 @@ addpath(genpath('DeepLearnToolbox'));
 WINSIZE=18;
 opts = [];
 opts.alpha = 1;
-opts.batchsize = 2;
-opts.numepochs = 3;
+opts.batchsize = 50;
+opts.numepochs = 100;
 
 cnn.layers = {
               struct('type', 'i') %input layer
@@ -19,7 +19,11 @@ cnn.layers = {
 train_src = dlmread("training_sample.txt","|",0,0);
 
 for i = 1:size(train_src,1)
-  train_x(:,:,i) = reshape(train_src(i,4:end), [ WINSIZE * 3 WINSIZE ]);
+  #  train_x(:,:,i) = reshape(train_src(i,4:end), [ WINSIZE * 3 WINSIZE ]);
+    R = reshape(train_src(i,4:(WINSIZE^2)+3), [ WINSIZE WINSIZE ])';
+    G = reshape(train_src(i,(WINSIZE^2)+4:(WINSIZE^2)*2+3), [ WINSIZE WINSIZE ])';
+    B = reshape(train_src(i,(WINSIZE^2)*2+4:(WINSIZE^2)*3+3), [ WINSIZE WINSIZE ])';
+    train_x(:,:,i) = cat(2,R,G,B);
 end;
 
 train_y = [train_src(:,3)'; (train_src(:,3)'-1) * -1 ];

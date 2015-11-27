@@ -1,51 +1,7 @@
 Driver: VRT/Virtual Raster
 Files: tmp_bing.vrt
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310212.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310230.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310232.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312010.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312012.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310213.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310231.tif
        /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310233.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312011.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312013.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310302.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310320.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310322.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312100.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312102.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310303.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310321.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310323.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312101.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312103.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310312.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310330.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310332.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312110.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312112.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310313.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310331.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122310333.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312111.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122312113.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122311202.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122311220.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122311222.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122313000.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122313002.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122311203.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122311221.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122311223.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122313001.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122313003.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122311212.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122311230.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122311232.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122313010.tif
-       /dias/users/miyazaki.h.u-tokyo/village-mapping/heromiya/CNN/../Bing/gtiff/19/a1322033011122313012.tif
-Size is 2304, 1280
+Size is 256, 256
 Coordinate System is:
 PROJCS["WGS 84 / Pseudo-Mercator",
     GEOGCS["WGS 84",
@@ -65,14 +21,14 @@ PROJCS["WGS 84 / Pseudo-Mercator",
         AUTHORITY["EPSG","9001"]],
     EXTENSION["PROJ4","+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"],
     AUTHORITY["EPSG","3857"]]
-Origin = (11098809.380000000819564,1547926.260000000009313)
-Pixel Size = (0.298580729166537,-0.298585937499956)
+Origin = (11098885.820000000298023,1547773.389999999897555)
+Pixel Size = (0.298593749997963,-0.298593749999782)
 Corner Coordinates:
-Upper Left  (11098809.380, 1547926.260) ( 99d42' 8.28"E, 13d46'14.63"N)
-Lower Left  (11098809.380, 1547544.070) ( 99d42' 8.28"E, 13d46' 2.63"N)
-Upper Right (11099497.310, 1547926.260) ( 99d42'30.53"E, 13d46'14.63"N)
-Lower Right (11099497.310, 1547544.070) ( 99d42'30.53"E, 13d46' 2.63"N)
-Center      (11099153.345, 1547735.165) ( 99d42'19.41"E, 13d46' 8.63"N)
+Upper Left  (11098885.820, 1547773.390) ( 99d42'10.76"E, 13d46' 9.83"N)
+Lower Left  (11098885.820, 1547696.950) ( 99d42'10.76"E, 13d46' 7.43"N)
+Upper Right (11098962.260, 1547773.390) ( 99d42'13.23"E, 13d46' 9.83"N)
+Lower Right (11098962.260, 1547696.950) ( 99d42'13.23"E, 13d46' 7.43"N)
+Center      (11098924.040, 1547735.170) ( 99d42'11.99"E, 13d46' 8.63"N)
 Band 1 Block=128x128 Type=Byte, ColorInterp=Red
 Band 2 Block=128x128 Type=Byte, ColorInterp=Green
 Band 3 Block=128x128 Type=Byte, ColorInterp=Blue
