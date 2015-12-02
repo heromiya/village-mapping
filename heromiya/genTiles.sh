@@ -14,7 +14,6 @@ CREATE TABLE tiles (
 );
 SELECT AddGeometryColumn('tiles', 'the_geom' ,4326, 'POLYGON', 'XY');
 EOF
-#EOF
 
 for ROI in `cat ROI.lst | head -n 1`; do
 	LONMIN=`echo $ROI | cut -f 2 -d '|'`
@@ -38,6 +37,7 @@ for ROI in `cat ROI.lst | head -n 1`; do
 		done
 	done
 done
+#EOF
 
 spatialite $DB <<EOF
 DELETE FROM geometry_columns WHERE f_table_name = 'target_tiles';
