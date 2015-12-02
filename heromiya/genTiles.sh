@@ -1,9 +1,10 @@
 #! /bin/bash
 
 ZLEVEL=15 # Tile size is 1223 x 1223 m
-PREREQ="var tilebelt = require('./tilebelt');"
+PREREQ="var tilebelt = require('tilebelt');"
 DB=geonames.sqlite
 
+:<<'#EOF'
 spatialite $DB <<EOF
 DELETE FROM geometry_columns WHERE f_table_name = 'tiles';
 DROP TABLE IF EXISTS tiles;
@@ -13,8 +14,9 @@ CREATE TABLE tiles (
 );
 SELECT AddGeometryColumn('tiles', 'the_geom' ,4326, 'POLYGON', 'XY');
 EOF
+#EOF
 
-for ROI in `cat ROI.lst`; do
+for ROI in `cat ROI.lst | head -n 1`; do
 	LONMIN=`echo $ROI | cut -f 2 -d '|'`
 	LATMIN=`echo $ROI | cut -f 3 -d '|'`
 	LONMAX=`echo $ROI | cut -f 4 -d '|'`

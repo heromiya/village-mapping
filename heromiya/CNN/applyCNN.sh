@@ -75,8 +75,8 @@ done
 
 cat sample_tmp/*_merge.txt | grep -v \* | sed 's/||/|/g; s/|$//g' > training_sample.txt
 
-octave buildKnowledgeBase.m
-octave cnnclassify.m
+octave -q --no-history --no-init-file --no-line-editing --no-window-system buildKnowledgeBase.m
+octave -q --no-history --no-init-file --no-line-editing --no-window-system cnnclassify.m
 
 :<<EOF
 #ls -l | awk '$5 != 3169 { print $9 }' | grep -v -e '^$' -e 'txt' > Z19.txt
