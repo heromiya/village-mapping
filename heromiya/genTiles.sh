@@ -88,4 +88,5 @@ INSERT INTO target_tiles_mm (qkey, the_geom) SELECT DISTINCT tiles.qkey,tiles.th
 
 EOF
 
+ogr2ogr -overwrite target_tiles geonames.sqlite target_tiles_la target_tiles_th target_tiles_ke target_tiles_mm
 exit 0

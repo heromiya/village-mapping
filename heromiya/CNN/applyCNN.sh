@@ -5,14 +5,18 @@
 #LONMAX=104.846
 #LATMAX=16.611
 
-LONMIN=99.703184
-LATMIN=13.769068
-LONMAX=99.703339
-LATMAX=13.769164
+#LONMIN=99.703184
+#LATMIN=13.769068
+#LONMAX=99.703339
+#LATMAX=13.769164
 
+LONMIN=104.9411
+LATMIN=16.3543
+LONMAX=104.9430
+LATMAX=16.3555
 export ZLEVEL=19
-export WINSIZE=18
-export NSAMPLE=10000
+export WINSIZE=28
+export NSAMPLE=1000
 
 export EPSG4326="+proj=longlat +datum=WGS84 +no_defs"
 export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
@@ -23,7 +27,20 @@ export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.
 
 rm -f tmp.txt
 for ARGS in `iojs ../get.BingAerial.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL`; do
+    cd ..
     QKEY=`echo $ARGS | cut -d ',' -f 1`
+    TLATMIN=`echo $ARGS |cut -d ',' -f 2`
+    TLONMIN=`echo $ARGS |cut -d ',' -f 3`
+    TLATMAX=`echo $ARGS |cut -d ',' -f 4`
+    TLONMAX=`echo $ARGS |cut -d ',' -f 5`
+    XMIN=`echo $TLATMIN $TLONMIN | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $1}'`
+    YMIN=`echo $TLATMIN $TLONMIN | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $2}'`
+    XMAX=`echo $TLATMAX $TLONMAX | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $1}'`
+    YMAX=`echo $TLATMAX $TLONMAX | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $2}'`
+    export QKEY XMIN YMIN XMAX YMAX
+    make Bing/gtiff/${ZLEVEL}/a${QKEY}.tif
+    cd CNN
+   
     if [ `stat -c "%s" ../Bing/gtiff/$ZLEVEL/a${QKEY}.tif` -ne 3169 ]; then
 	echo ../Bing/gtiff/$ZLEVEL/a${QKEY}.tif >> tmp.txt
     fi

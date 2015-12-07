@@ -2,7 +2,7 @@ clear;
 close all;
 addpath(genpath('DeepLearnToolbox'));
 
-WINSIZE=18;
+WINSIZE=28;
 
 load cnnknowledgebase;
 in = imread('tmp_bing.tif');

@@ -1,7 +1,7 @@
 clear;
 close all;
 addpath(genpath('DeepLearnToolbox'));
-WINSIZE=18;
+WINSIZE=28;
 
 train_src = dlmread("training_sample.txt","|",0,0);
 
@@ -22,7 +22,7 @@ cnn.layers = {
               struct('type', 'i') %input layer
               struct('type', 'c', 'outputmaps', 6, 'kernelsize', 5) %convolution layer
               struct('type', 's', 'scale', 2) %sub sampling layer
-              struct('type', 'c', 'outputmaps', 12, 'kernelsize', 4) %convolution layer
+              struct('type', 'c', 'outputmaps', 12, 'kernelsize', 5) %convolution layer
               struct('type', 's', 'scale', 2) %subsampling layer
 };   
 #arg_list{1}
