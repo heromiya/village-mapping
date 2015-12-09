@@ -2,7 +2,7 @@ CENTER=$1
 
 X_CENTER=`echo $CENTER | cut -f 1 -d "|"`
 Y_CENTER=`echo $CENTER | cut -f 2 -d "|"`
-BASENAME=sample_tmp/${ZLEVEL}-${QKEY}-${X_CENTER}_${Y_CENTER}
+BASENAME=sample_tmp/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}-${X_CENTER}_${Y_CENTER}
 
 rm -f ${BASENAME}.input_coords.txt
 RANGE=`seq -$(echo "$WINSIZE / 2" | bc) $(echo "$WINSIZE / 2 - 1" | bc)`
@@ -21,7 +21,7 @@ done
 #    gdallocationinfo -l_srs EPSG:3857 -valonly $TILESVRT.tif $X $Y | awk 'BEGIN{ORS="|"}{print}' >> sample_tmp/${X_CENTER}_${Y_CENTER}.txt
 #done
 
-r.what input=bing.1,bing.2,bing.3 cache=30000 < $BASENAME.input_coords.txt > sample_tmp/$BASENAME.txt
+r.what input=bing.1,bing.2,bing.3 cache=30000 < $BASENAME.input_coords.txt > $BASENAME.txt
 
 awk 'BEGIN{FS="|"; ORS="|"}{print $4}' $BASENAME.txt > ${BASENAME}_1.txt
 awk 'BEGIN{FS="|"; ORS="|"}{print $5}' $BASENAME.txt > ${BASENAME}_2.txt
