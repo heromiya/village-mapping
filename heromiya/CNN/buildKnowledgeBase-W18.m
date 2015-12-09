@@ -11,7 +11,7 @@ for i = 1:size(train_src,1)
     B = reshape(train_src(i,(WINSIZE^2)*2+4:(WINSIZE^2)*3+3), [ WINSIZE WINSIZE ])';
     train_x(:,:,i) = cat(2,R,G,B);
 end;
-train_x = double(train_x)/255;
+train_x = (double(train_x)-127)/128;
 
 opts = [];
 opts.alpha = 1;

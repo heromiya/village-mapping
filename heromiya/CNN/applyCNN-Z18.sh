@@ -27,12 +27,10 @@ export NSAMPLE=1000
 export EPSG4326="+proj=longlat +datum=WGS84 +no_defs"
 export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
 
-#ls -l | awk '$5 != 3169 { print $9 }' | grep -v -e '^$' -e 'txt' > Z19.txt
-#gdalbuildvrt -input_file_list Z19.txt Z19.vrt
 #:<<'#EOF'
 
 TILES=tmp/tmp-$$.txt
-TILESVRT=tmp/tmp_bing-$$.vrt
+export TILESVRT=tmp/tmp_bing-$$.vrt
 
 rm -f tmp.txt
 for ARGS in `iojs ../get.BingAerial.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL`; do
@@ -70,15 +68,15 @@ eval `g.gisenv`
 #:<<'#EOF'
 g.proj -c proj4="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs <>"
 g.region n=$YMAX s=$YMIN e=$XMAX w=$XMIN nsres=$YRES ewres=$XRES --overwrite
-r.in.gdal -ok input=$TILESVRT output=bing --overwrite
+r.in.gdal -ok memory=65535 input=$TILESVRT output=bing --overwrite
 db.connect driver=sqlite database=$GISDBASE/$LOCATION_NAME/$MAPSET/db.sqlite
 v.in.ogr -o dsn=../working_polygon_EY.shp output=gt layer=working_polygon_EY type=boundary --overwrite --quiet
 v.to.rast input=gt type=area output=gt_rast use=val --overwrite --quiet
 r.null map=gt_rast null=0
 #EOF
 
-rm -rf sample_tmp
-mkdir -p sample_tmp
+find sample_tmp/ -type f | xargs rm -f
+#mkdir -p sample_tmp
 
 r.mask -r
 for MASKVAL in 0 1; do
@@ -96,7 +94,7 @@ for MASKVAL in 0 1; do
     v.db.connect -o map=gt_sample_$MASKVAL layer=2 table=gt_sample_$MASKVAL
     v.db.addcol     map=gt_sample_$MASKVAL layer=2 columns='x double precision, y double precision'
     v.to.db         map=gt_sample_$MASKVAL layer=1 type=point option=coor columns='x,y'
-    v.db.select -c  map=gt_sample_$MASKVAL layer=2 columns=x,y | xargs parallel --jobs 20% ./collect_sample.sh :::
+    v.db.select -c  map=gt_sample_$MASKVAL layer=2 columns=x,y | xargs parallel --joblog logs/log-`date +'%F_%T'`.txt --jobs 25% ./collect_sample.sh :::
 done
 
 cat sample_tmp/*_merge.txt | grep -v \* | sed 's/||/|/g; s/|$//g' > training_sample.txt
