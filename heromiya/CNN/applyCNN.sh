@@ -1,25 +1,12 @@
 #! /bin/bash
 
-#LONMIN=104.787
-#LATMIN=16.568
-#LONMAX=104.846
-#LATMAX=16.611
-
-#LONMIN=99.703184
-#LATMIN=13.769068
-#LONMAX=99.703339
-#LATMAX=13.769164
-
-#LONMIN=104.9411
-#LATMIN=16.3543
-#LONMAX=104.9430
-#LATMAX=16.3555
 export ZLEVEL=18
 export WINSIZE=18
 export NSAMPLE=100
 
 export EPSG4326="+proj=longlat +datum=WGS84 +no_defs"
 export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
+export OCTAVEOPT="-q --no-history --no-init-file --no-line-editing --no-window-system"
 
 #ls -l | awk '$5 != 3169 { print $9 }' | grep -v -e '^$' -e 'txt' > Z19.txt
 #gdalbuildvrt -input_file_list Z19.txt Z19.vrt
@@ -62,7 +49,6 @@ cat sample_tmp/Z${ZLEVEL}-[0-9]*-[01]_merge.txt | grep -v \* | sed 's/||/|/g; s/
 
 export KNOWLEDGE=knowledgebase/knowledgebase-`date +'%F-%T' | sed 's/[-:]//g'`-$$
 
-export OCTAVEOPT="-q --no-history --no-init-file --no-line-editing --no-window-system"
 #octave $OCTAVEOPT buildKnowledgeBase.m $WINSIZE $TRAINING_DATA $KNOWLEDGE
 
 for TRAINING_QKEY in `cat ../completedSamples_EY.lst | head -n 1`; do
