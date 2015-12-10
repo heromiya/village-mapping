@@ -34,7 +34,7 @@ endfunction
 
 #test_x = cell(WINSIZE,WINSIZE*18,10);
 for y = WINSIZE/2+1 : size(in,1) - (WINSIZE/2 - 1)
-#  printf('%d %s\n',y,asctime(localtime(time)));
+#  printf('%d %s',y,asctime(localtime(time)));
   for x = WINSIZE/2+1 : size(in,2) - (WINSIZE/2 - 1)
     test_x(1:WINSIZE,1:WINSIZE*3,(x - (WINSIZE/2+1)) + 1 + (y - (WINSIZE/2+1)) * XRANGE) = mymerge1(x,y,in,WINSIZE);
   end;
@@ -49,16 +49,15 @@ end;
 
 #output=pararrayfun(2,@(k)mymerge2(k),[1,2,3]);
 
-#test_x(WINSIZE,WINSIZE*3,1:100)
-#test_x = (double(test_x)-127)/128;
+test_x = (double(test_x)-127)/128;
 
 load KNOWLEDGE;
 cnn = cnnff(cnn, test_x);
 [~, h] = max(cnn.o);
 
-imwrite(reshape (h,[ size(in,1)-WINSIZE+1 size(in,2)-WINSIZE+1 ]),OUTPUT);
+imwrite(rot90(uint8(reshape(h,[ size(in,1)-WINSIZE+1 size(in,2)-WINSIZE+1 ])),-1),OUTPUT);
 
-
+#save hogehoge
 
 #    test_x(:,:,1+(XRANGE*(y-1)):XRANGE+(XRANGE*(y-1))) = parcellfun (50, mymerge, WINSIZE/2+1 : size(in,2) - (WINSIZE/2 - 1));
 #	tmp = in(y-WINSIZE/2:y+(WINSIZE/2-1), x-WINSIZE/2:x+(WINSIZE/2-1),:);

@@ -62,39 +62,21 @@ cat sample_tmp/Z${ZLEVEL}-[0-9]*-[01]_merge.txt | grep -v \* | sed 's/||/|/g; s/
 
 export KNOWLEDGE=knowledgebase/knowledgebase-`date +'%F-%T' | sed 's/[-:]//g'`-$$
 
-#octave -q --no-history --no-init-file --no-line-editing --no-window-system buildKnowledgeBase.m $WINSIZE $TRAINING_DATA $KNOWLEDGE
+export OCTAVEOPT="-q --no-history --no-init-file --no-line-editing --no-window-system"
+#octave $OCTAVEOPT buildKnowledgeBase.m $WINSIZE $TRAINING_DATA $KNOWLEDGE
 
 for TRAINING_QKEY in `cat ../completedSamples_EY.lst | head -n 1`; do
     export TILESVRT=tileList/Z$ZLEVEL-$TRAINING_QKEY.vrt
     export TILES=tileList/Z$ZLEVEL-$TRAINING_QKEY.lst
 #    INPUT=$TILESVRT.tif
 #    OUTPUT=cnnresult/Z$ZLEVEL-$TRAINING_QKEY.cnnresult.tif
-    for SUBTILE in `cat $TILES |head -n 1`; do
-	INPUT=$SUBTILE
-	QKEY=`echo $SUBTILE | sed 's/..\/Bing\/gtiff\/18\/a//g; s/\.tif//g'`
-	OUTPUT=cnnresult/Z$ZLEVEL-a$QKEY.cnnresult.tif
-	octave -q --no-history --no-init-file --no-line-editing --no-window-system cnnclassify.m $WINSIZE $INPUT $KNOWLEDGE $OUTPUT
-    done
+#    for SUBTILE in `cat $TILES |head -n 1`; do
+#	INPUT=$SUBTILE
+#	QKEY=`echo $SUBTILE | sed 's/..\/Bing\/gtiff\/18\/a//g; s/\.tif//g'`
+#	OUTPUT=cnnresult/Z$ZLEVEL-a$QKEY.cnnresult.tif
+#	
+#    done
+    cat $TILES | xargs parallel --jobs 50% --joblog logs/cnnclassify.m-`date +"%F_%T"` ./cnnclassify.sub.sh :::
+#    bash -x ./cnnclassify.sub.sh `head -n 1 $TILES`
 done
-
-:<<EOF
-#ls -l | awk '$5 != 3169 { print $9 }' | grep -v -e '^$' -e 'txt' > Z19.txt
-#gdalbuildvrt -input_file_list Z19.txt Z19.vrt
-
-    QKEY=`echo $ARGS | cut -d ',' -f 1`
-    TLATMIN=`echo $ARGS |cut -d ',' -f 2`
-    TLONMIN=`echo $ARGS |cut -d ',' -f 3`
-    TLATMAX=`echo $ARGS |cut -d ',' -f 4`
-    TLONMAX=`echo $ARGS |cut -d ',' -f 5`
-    XMIN=`echo $LATMIN $LONMIN | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $1}'`
-    YMIN=`echo $LATMIN $LONMIN | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $2}'`
-    XMAX=`echo $LATMAX $LONMAX | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $1}'`
-    YMAX=`echo $LATMAX $LONMAX | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $2}'`
-    export QKEY XMIN YMIN XMAX YMAX
-    
-    gdalwarp -te $XMIN $YMIN $XMAX $YMAX -tr 
-
-#done
-EOF
-
 exit 0
