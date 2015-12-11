@@ -19,7 +19,7 @@ $(TILES):
 	XMAX=`echo $${TLATMAX} $${TLONMAX} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}'` && \
 	YMAX=`echo $${TLATMAX} $${TLONMAX} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}'` && \
 	export QKEY XMIN YMIN XMAX YMAX && \
-	make Bing/gtiff/$(ZLEVEL)/a$$QKEY.tif && \
+	make -rR Bing/gtiff/$(ZLEVEL)/a$$QKEY.tif && \
 	cd CNN && \
 	if [ `stat -c "%s" ../Bing/gtiff/$(ZLEVEL)/a$$QKEY.tif` -ne 3169 ]; then echo ../Bing/gtiff/$(ZLEVEL)/a$$QKEY.tif >> $@; fi; done
 $(TILESVRT): $(TILES)
@@ -44,11 +44,12 @@ sample_tmp/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge.txt: $(TILESVRT).tif
 	v.to.db         map=gt_sample_$(MASKVAL) layer=1 type=point option=coor columns='x,y' --overwrite --quiet && \
 	v.db.select -c  map=gt_sample_$(MASKVAL) layer=2 columns=x,y | xargs parallel --jobs 20% ./collect_sample.sh ::: && \
 	cat sample_tmp/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)-*_merge.txt > $@
+
+$(CNNINPUT):
+	gdalwarp -te $(XMIN) $(YMIN) $(XMAX) $(YMAX) -tr $(XRES) $(YRES) -wm 2048 -multi -q -co COMPRESS=Deflate -overwrite `iojs ../get.BingAerial.js $(QLONMIN) $(QLATMIN) $(QLONMAX) $(QLATMAX) $(ZLEVEL) | awk -v zlevel=$(ZLEVEL) 'BEGIN{FS=","}{printf("../Bing/gtiff/%d/a%s.tif ",zlevel,$$1)}'` $@
+
 $(CNNOUTPUT): $(CNNINPUT)
 	octave $(OCTAVEOPT) cnnclassify.m $(WINSIZE) $< $(KNOWLEDGE) $@
-
-#XRES=0.597187500003201
-#YRES=0.597187500003201
 
 $(CNNPROJ): $(CNNOUTPUT)
 	BB=`iojs inqTileBB.js $(TILE_QKEY)` && \
@@ -56,8 +57,13 @@ $(CNNPROJ): $(CNNOUTPUT)
 	LATMIN=`echo $$BB | cut -f 2 -d '|'` && \
 	LONMAX=`echo $$BB | cut -f 3 -d '|'` && \
 	LATMAX=`echo $$BB | cut -f 4 -d '|'` && \
-	XMIN=`echo "$$(echo $${LONMIN} $${LATMIN} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}') + $(WINSIZE) / 2 * $(XRES)" |bc` && \
+	XMIN=$$(echo $${LONMIN} $${LATMIN} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}') && \
+	YMIN=$$(echo $${LONMIN} $${LATMIN} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}') && \
+	XMAX=$$(echo $${LONMAX} $${LATMAX} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}') && \
+	YMAX=$$(echo $${LONMAX} $${LATMAX} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}') && \
+	gdal_translate -a_srs EPSG:3857 -a_ullr $$XMIN $$YMAX $$XMAX $$YMIN -co COMPRESS=Deflate $< $@
+
+#	XMIN=`echo "$$(echo $${LONMIN} $${LATMIN} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}') + $(WINSIZE) / 2 * $(XRES)" |bc` && \
 	YMIN=`echo "$$(echo $${LONMIN} $${LATMIN} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}') + $(WINSIZE) / 2 * $(YRES)" |bc` && \
 	XMAX=`echo "$$(echo $${LONMAX} $${LATMAX} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}') - ($(WINSIZE) / 2 - 1) * $(XRES)"|bc` && \
 	YMAX=`echo "$$(echo $${LONMAX} $${LATMAX} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}') - ($(WINSIZE) / 2 - 1) * $(YRES)"|bc` && \
-	gdal_translate -a_srs EPSG:3857 -a_ullr $$XMIN $$YMAX $$XMAX $$YMIN -co COMPRESS=Deflate $< $@

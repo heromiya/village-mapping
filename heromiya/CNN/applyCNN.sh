@@ -8,8 +8,6 @@ export EPSG4326="+proj=longlat +datum=WGS84 +no_defs"
 export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
 export OCTAVEOPT="-q --no-history --no-init-file --no-line-editing --no-window-system"
 
-#ls -l | awk '$5 != 3169 { print $9 }' | grep -v -e '^$' -e 'txt' > Z19.txt
-#gdalbuildvrt -input_file_list Z19.txt Z19.vrt
 :<<'#EOF'
 
 for TRAINING_QKEY in `cat ../completedSamples_EY.lst`; do
@@ -54,15 +52,8 @@ export KNOWLEDGE=knowledgebase/knowledgebase-`date +'%F-%T' | sed 's/[-:]//g'`-$
 for TRAINING_QKEY in `cat ../completedSamples_EY.lst | head -n 1`; do
     export TILESVRT=tileList/Z$ZLEVEL-$TRAINING_QKEY.vrt
     export TILES=tileList/Z$ZLEVEL-$TRAINING_QKEY.lst
-#    INPUT=$TILESVRT.tif
-#    OUTPUT=cnnresult/Z$ZLEVEL-$TRAINING_QKEY.cnnresult.tif
-#    for SUBTILE in `cat $TILES |head -n 1`; do
-#	INPUT=$SUBTILE
-#	QKEY=`echo $SUBTILE | sed 's/..\/Bing\/gtiff\/18\/a//g; s/\.tif//g'`
-#	OUTPUT=cnnresult/Z$ZLEVEL-a$QKEY.cnnresult.tif
-#	
-#    done
     cat $TILES | xargs parallel --jobs 50% --joblog logs/cnnclassify.m-`date +"%F_%T"` ./cnnclassify.sub.sh :::
 #    bash -x ./cnnclassify.sub.sh `head -n 1 $TILES`
+#sed 's/\.\.\/Bing\/gtiff\/18\/a/cnninput\/Z18-/;' 
 done
 exit 0

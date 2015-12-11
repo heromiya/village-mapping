@@ -16,7 +16,7 @@ global XRANGE = size(in,2)-WINSIZE+1;
 function test_data = mymerge1 (x,y,in,WINSIZE)
   YCELLS=y-WINSIZE/2:y+(WINSIZE/2-1);
   XCELLS=x-WINSIZE/2:x+(WINSIZE/2-1);
-  test_data = cat(2,in(YCELLS, XCELLS,1),in(YCELLS, XCELLS,2),in(YCELLS, XCELLS,3));
+  test_data = horzcat(in(YCELLS, XCELLS,1),in(YCELLS, XCELLS,2),in(YCELLS, XCELLS,3));
 endfunction;
 
 function test_data = mymerge2 (k)
@@ -43,5 +43,7 @@ test_x = (double(test_x)-127)/128;
 load KNOWLEDGE;
 cnn = cnnff(cnn, test_x);
 [~, h] = max(cnn.o);
+outimg = reshape(h,[ size(in,1)-WINSIZE+1 size(in,2)-WINSIZE+1 ])),-1));
+zeros(size(in,1),size(in,2));
 
-imwrite(fliplr(rot90(uint8(reshape(h,[ size(in,1)-WINSIZE+1 size(in,2)-WINSIZE+1 ])),-1)),OUTPUT);
+imwrite(fliplr(rot90(uint8(      ),-1)),OUTPUT);
