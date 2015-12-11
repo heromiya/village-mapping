@@ -42,7 +42,7 @@ sample_tmp/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge.txt: $(TILESVRT).tif
 	v.db.connect -o map=gt_sample_$(MASKVAL) layer=2 table=gt_sample_$(MASKVAL)  --overwrite --quiet && \
 	v.db.addcol     map=gt_sample_$(MASKVAL) layer=2 columns='x double precision, y double precision'  --overwrite --quiet && \
 	v.to.db         map=gt_sample_$(MASKVAL) layer=1 type=point option=coor columns='x,y' --overwrite --quiet && \
-	v.db.select -c  map=gt_sample_$(MASKVAL) layer=2 columns=x,y | xargs parallel --jobs 20% ./collect_sample.sh ::: && \
+	v.db.select -c  map=gt_sample_$(MASKVAL) layer=2 columns=x,y | xargs parallel --jobs 50% ./collect_sample.sh ::: && \
 	cat sample_tmp/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)-*_merge.txt > $@
 
 $(CNNINPUT):
@@ -52,18 +52,4 @@ $(CNNOUTPUT): $(CNNINPUT)
 	octave $(OCTAVEOPT) cnnclassify.m $(WINSIZE) $< $(KNOWLEDGE) $@
 
 $(CNNPROJ): $(CNNOUTPUT)
-	BB=`iojs inqTileBB.js $(TILE_QKEY)` && \
-	LONMIN=`echo $$BB | cut -f 1 -d '|'` && \
-	LATMIN=`echo $$BB | cut -f 2 -d '|'` && \
-	LONMAX=`echo $$BB | cut -f 3 -d '|'` && \
-	LATMAX=`echo $$BB | cut -f 4 -d '|'` && \
-	XMIN=$$(echo $${LONMIN} $${LATMIN} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}') && \
-	YMIN=$$(echo $${LONMIN} $${LATMIN} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}') && \
-	XMAX=$$(echo $${LONMAX} $${LATMAX} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}') && \
-	YMAX=$$(echo $${LONMAX} $${LATMAX} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}') && \
-	gdal_translate -a_srs EPSG:3857 -a_ullr $$XMIN $$YMAX $$XMAX $$YMIN -co COMPRESS=Deflate $< $@
-
-#	XMIN=`echo "$$(echo $${LONMIN} $${LATMIN} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}') + $(WINSIZE) / 2 * $(XRES)" |bc` && \
-	YMIN=`echo "$$(echo $${LONMIN} $${LATMIN} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}') + $(WINSIZE) / 2 * $(YRES)" |bc` && \
-	XMAX=`echo "$$(echo $${LONMAX} $${LATMAX} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}') - ($(WINSIZE) / 2 - 1) * $(XRES)"|bc` && \
-	YMAX=`echo "$$(echo $${LONMAX} $${LATMAX} | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}') - ($(WINSIZE) / 2 - 1) * $(YRES)"|bc` && \
+	gdal_translate -a_srs EPSG:3857 -a_ullr $(XMIN) $(YMAX) $(XMAX) $(YMIN) -a_nodata 0 -co COMPRESS=Deflate $< $@

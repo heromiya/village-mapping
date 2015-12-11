@@ -36,4 +36,4 @@ rand('state',0)
 cnn = cnnsetup(cnn, train_x, train_y);
 cnn = cnntrain(cnn, train_x, train_y, opts);
 
-save -binary KNOWLEDGE cnn;
+save -binary arg_list{3} cnn;

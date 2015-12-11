@@ -1,14 +1,14 @@
 #! /bin/bash
 
-export ZLEVEL=18
+export ZLEVEL=19
 export WINSIZE=18
-export NSAMPLE=100
+export NSAMPLE=1000
 
 export EPSG4326="+proj=longlat +datum=WGS84 +no_defs"
 export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
 export OCTAVEOPT="-q --no-history --no-init-file --no-line-editing --no-window-system"
 
-:<<'#EOF'
+#:<<'#EOF'
 
 for TRAINING_QKEY in `cat ../completedSamples_EY.lst`; do
     export TRAINING_QKEY
@@ -25,7 +25,7 @@ for TRAINING_QKEY in `cat ../completedSamples_EY.lst`; do
     export YRES=`grep "Pixel Size"  $TILESVRT.info | sed 's/Pixel Size = (\([-.0-9]*\),\([-.0-9]*\))/\2/; s/-//'`
     eval `g.gisenv`
 
-    g.proj -c proj4="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs <>"
+    g.proj -c proj4="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs <>"
     g.region n=$YMAX s=$YMIN e=$XMAX w=$XMIN nsres=$YRES ewres=$XRES --overwrite --quiet
     r.in.gdal -ok input=$TILESVRT.tif output=bing --overwrite --quiet
     db.connect driver=sqlite database=$GISDBASE/$LOCATION_NAME/$MAPSET/db.sqlite
@@ -45,15 +45,14 @@ TRAINING_DATA=training_data/training_data-`date +'%F-%T' | sed 's/[-:]//g'`-$$
 rm -f $TRAINING_DATA
 cat sample_tmp/Z${ZLEVEL}-[0-9]*-[01]_merge.txt | grep -v \* | sed 's/||/|/g; s/|$//g' > $TRAINING_DATA
 
-export KNOWLEDGE=knowledgebase/knowledgebase-`date +'%F-%T' | sed 's/[-:]//g'`-$$
+export KNOWLEDGE=knowledgebase/knowledgebase.$NSAMPLE.`date +'%F-%T' | sed 's/[-:]//g'`.mat
 
-#octave $OCTAVEOPT buildKnowledgeBase.m $WINSIZE $TRAINING_DATA $KNOWLEDGE
+octave $OCTAVEOPT buildKnowledgeBase.m $WINSIZE $TRAINING_DATA $KNOWLEDGE
 
-for TRAINING_QKEY in `cat ../completedSamples_EY.lst | head -n 1`; do
+for TRAINING_QKEY in `cat ../completedSamples_EY.lst`; do
     export TILESVRT=tileList/Z$ZLEVEL-$TRAINING_QKEY.vrt
     export TILES=tileList/Z$ZLEVEL-$TRAINING_QKEY.lst
     cat $TILES | xargs parallel --jobs 50% --joblog logs/cnnclassify.m-`date +"%F_%T"` ./cnnclassify.sub.sh :::
 #    bash -x ./cnnclassify.sub.sh `head -n 1 $TILES`
-#sed 's/\.\.\/Bing\/gtiff\/18\/a/cnninput\/Z18-/;' 
 done
 exit 0
