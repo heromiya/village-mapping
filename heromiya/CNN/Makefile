@@ -30,7 +30,11 @@ $(TILESVRT).info: $(TILESVRT).tif
 YINC = $(shell echo $(YRES) \* $(WINSIZE) / 2 + 1 | bc)
 XINC = $(shell echo $(XRES) \* $(WINSIZE) / 2 + 1 | bc)
 
-sample_tmp/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge.txt: $(TILESVRT).tif
+sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge.txt: $(TILESVRT).tif
+	r.in.gdal -ok input=$< output=bing --overwrite --quiet && \
+	v.in.ogr -o dsn=../working_polygon_EY.shp output=gt layer=working_polygon_EY type=boundary --overwrite --quiet && \
+	v.to.rast input=gt type=area output=gt_rast use=val --overwrite --quiet && \
+	r.null map=gt_rast null=0 --overwrite --quiet && \
 	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES) --overwrite && \
 	r.mask -o input=gt_rast maskcats=$(MASKVAL) && \
 	g.region n=n-$(YINC) s=s+$(YINC) e=e-$(XINC) w=w+$(XINC) nsres=$(YRES) ewres=$(XRES) --overwrite && \
@@ -43,13 +47,21 @@ sample_tmp/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge.txt: $(TILESVRT).tif
 	v.db.addcol     map=gt_sample_$(MASKVAL) layer=2 columns='x double precision, y double precision'  --overwrite --quiet && \
 	v.to.db         map=gt_sample_$(MASKVAL) layer=1 type=point option=coor columns='x,y' --overwrite --quiet && \
 	v.db.select -c  map=gt_sample_$(MASKVAL) layer=2 columns=x,y | xargs parallel --jobs 50% ./collect_sample.sh ::: && \
-	cat sample_tmp/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)-*_merge.txt > $@
+	cat sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)-*_merge.txt > $@
+
+$(KNOWLEDGE): $(TRAINING_DATA)
+	octave $(OCTAVEOPT) buildKnowledgeBase.m $(WINSIZE) $< $@
+
+$(TRAINING_DATA): sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-*_merge.txt	
+	cat $+ | grep -v \* | sed 's/||/|/g; s/|$//g' > $@
 
 $(CNNINPUT):
+	cd .. && iojs get.BingAerial.js $(QLONMIN) $(QLATMIN) $(QLONMAX) $(QLATMAX) $(ZLEVEL) | xargs parallel --joblog log.txt --jobs 10% "./get.Bing.Aerial.Sub.sh" ::: && cd CNN
 	gdalwarp -te $(XMIN) $(YMIN) $(XMAX) $(YMAX) -tr $(XRES) $(YRES) -wm 2048 -multi -q -co COMPRESS=Deflate -overwrite `iojs ../get.BingAerial.js $(QLONMIN) $(QLATMIN) $(QLONMAX) $(QLATMAX) $(ZLEVEL) | awk -v zlevel=$(ZLEVEL) 'BEGIN{FS=","}{printf("../Bing/gtiff/%d/a%s.tif ",zlevel,$$1)}'` $@
 
-$(CNNOUTPUT): $(CNNINPUT)
+$(CNNOUTPUT): $(CNNINPUT) $(KNOWLEDGE)
 	octave $(OCTAVEOPT) cnnclassify.m $(WINSIZE) $< $(KNOWLEDGE) $@
 
 $(CNNPROJ): $(CNNOUTPUT)
 	gdal_translate -a_srs EPSG:3857 -a_ullr $(XMIN) $(YMAX) $(XMAX) $(YMIN) -a_nodata 0 -co COMPRESS=Deflate $< $@
+

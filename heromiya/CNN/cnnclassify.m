@@ -1,7 +1,7 @@
 clear;
 close all;
 addpath(genpath('DeepLearnToolbox'));
-pkg load parallel;
+#pkg load parallel;
 
 arg_list = argv();
 WINSIZE = str2num(arg_list{1});
@@ -27,7 +27,7 @@ end;
 
 test_x = (double(test_x)-127)/128;
 
-load arg_list{3} ;
+load(KNOWLEDGE);
 cnn = cnnff(cnn, test_x);
 [~, h] = max(cnn.o);
 outimg = vertcat( zeros( WINSIZE/2, size(in,2) ), horzcat( zeros(D1RANGE,WINSIZE/2), reshape(uint8(h),[ size(in,1)-WINSIZE+1 size(in,2)-WINSIZE+1 ]) , zeros(D1RANGE,WINSIZE/2-1) ), zeros( WINSIZE/2-1, size(in,2)));

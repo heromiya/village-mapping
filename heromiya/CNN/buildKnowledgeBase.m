@@ -7,20 +7,22 @@ WINSIZE=str2num(arg_list{1});
 INPUT=arg_list{2};
 KNOWLEDGE=arg_list{3};
 
-train_src = dlmread(arg_list{2},"|",0,0);
+train_src = dlmread(INPUT,"|",0,0);
 
-for i = 1:size(train_src,1)
+opts = [];
+opts.alpha = 1;
+opts.batchsize = 50;
+opts.numepochs = 100;
+
+sample_row = floor(size(train_src,1) / opts.batchsize) * opts.batchsize;
+
+for i = 1:sample_row
     R = reshape(train_src(i,4:(WINSIZE^2)+3)                , [ WINSIZE WINSIZE ])';
     G = reshape(train_src(i,(WINSIZE^2)+4:(WINSIZE^2)*2+3)  , [ WINSIZE WINSIZE ])';
     B = reshape(train_src(i,(WINSIZE^2)*2+4:(WINSIZE^2)*3+3), [ WINSIZE WINSIZE ])';
     train_x(:,:,i) = cat(2,R,G,B);
 end;
 train_x = (double(train_x)-127)/128;
-
-opts = [];
-opts.alpha = 1;
-opts.batchsize = 50;
-opts.numepochs = 100;
 
 cnn.layers = {
               struct('type', 'i') %input layer
@@ -36,4 +38,4 @@ rand('state',0)
 cnn = cnnsetup(cnn, train_x, train_y);
 cnn = cnntrain(cnn, train_x, train_y, opts);
 
-save -binary arg_list{3} cnn;
+save("-binary",KNOWLEDGE,"cnn");
