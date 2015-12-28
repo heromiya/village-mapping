@@ -17,8 +17,8 @@ db.connect driver=sqlite database='$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db'
 
 for TRAINING_QKEY in `cat ../completedSamples_EY.lst`; do
     export TRAINING_QKEY
-    export TILES=tileList/Z$ZLEVEL-$TRAINING_QKEY.lst
-    export TILESVRT=tileList/Z$ZLEVEL-$TRAINING_QKEY.vrt
+    export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TRAINING_QKEY.lst
+    export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-$TRAINING_QKEY.vrt
     make $TILES $TILESVRT.tif $TILESVRT.info
     
     export XMIN=`grep "Upper Left"  $TILESVRT.info | sed 's/^Upper Left  (\([-.0-9]*\), \([-.0-9]*\)) .*/\1/g'`
@@ -43,10 +43,13 @@ export TRAINING_DATA=training_data/Z${ZLEVEL}-training_data-$NSAMPLE.csv
 export KNOWLEDGE=knowledgebase/Z${ZLEVEL}-knowledgebase.$NSAMPLE.mat
 make $TRAINING_DATA $KNOWLEDGE
 
-for TRAINING_QKEY in `cat ../completedSamples_EY.lst`; do
-    export TILESVRT=tileList/Z$ZLEVEL-$TRAINING_QKEY.vrt
-    export TILES=tileList/Z$ZLEVEL-$TRAINING_QKEY.lst
-    cat $TILES | xargs parallel --jobs 50% --joblog logs/cnnclassify.m-`date +"%F_%T"` ./cnnclassify.sub.sh :::
+#for TRAINING_QKEY in `cat ../completedSamples_EY.lst`; do
+for TEST_QKEY in `iojs ../get.BingAerial.js 96.1425 16.7656 96.3683 17.0239 15 | awk 'BEGIN{FS=","}{print $1}'`; do
+    export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.vrt
+    export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.lst
+    make $TILES $TILESVRT.tif $TILESVRT.info
+
+    cat $TILES | xargs parallel --jobs 20% --joblog logs/cnnclassify.m-`date +"%F_%T"` ./cnnclassify.sub.sh :::
 #    bash -x ./cnnclassify.sub.sh `head -n 1 $TILES`
 done
 exit 0
