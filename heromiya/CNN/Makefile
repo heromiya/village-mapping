@@ -32,21 +32,22 @@ XINC = $(shell echo $(XRES) \* $(WINSIZE) / 2 + 1 | bc)
 
 sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge.txt: $(TILESVRT).tif
 	r.in.gdal -ok input=$< output=bing --overwrite --quiet && \
-	v.in.ogr -o dsn=../working_polygon_EY.shp output=gt layer=working_polygon_EY type=boundary --overwrite --quiet && \
-	v.to.rast input=gt type=area output=gt_rast use=val --overwrite --quiet && \
-	r.null map=gt_rast null=0 --overwrite --quiet && \
+	v.in.ogr -o dsn=../working_polygon_EY.shp output=gt_$(ZLEVEL)_$(TRAINING_QKEY) spatial=$(XMIN),$(YMIN),$(XMAX),$(YMAX) layer=working_polygon_EY type=boundary --overwrite --quiet && \
+	v.to.rast input=gt_$(ZLEVEL)_$(TRAINING_QKEY) type=area output=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) use=val --overwrite --quiet && \
+	r.null map=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) null=0 --overwrite --quiet && \
 	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES) --overwrite && \
-	r.mask -o input=gt_rast maskcats=$(MASKVAL) && \
+	r.mask -o input=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) maskcats=$(MASKVAL) && \
 	g.region n=n-$(YINC) s=s+$(YINC) e=e-$(XINC) w=w+$(XINC) nsres=$(YRES) ewres=$(XRES) --overwrite && \
-	g.remove -f vect=gt_sample_$(MASKVAL) && \
-	r.random input=gt_rast n=$(NSAMPLE) vector_output=gt_sample_$(MASKVAL) --overwrite --quiet && \
+	g.remove -f vect=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) && \
+	CELLNUM=`r.stats -cn MASK | cut -f 2 -d " "` && if [ $$CELLNUM -gt $(NSAMPLE) ]; then SAMPLENUM = $(NSAMPLE); else SAMPLENUM = $$CELLNUM; fi && \
+	r.random input=gt_rast n=$$SAMPLENUM vector_output=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) --overwrite --quiet && \
 	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES) --overwrite && \
 	r.mask -r  --overwrite --quiet && \
-	v.db.addtable   map=gt_sample_$(MASKVAL) layer=2 table=gt_sample_$(MASKVAL) columns='cat integer'  --overwrite --quiet && \
-	v.db.connect -o map=gt_sample_$(MASKVAL) layer=2 table=gt_sample_$(MASKVAL)  --overwrite --quiet && \
-	v.db.addcol     map=gt_sample_$(MASKVAL) layer=2 columns='x double precision, y double precision'  --overwrite --quiet && \
-	v.to.db         map=gt_sample_$(MASKVAL) layer=1 type=point option=coor columns='x,y' --overwrite --quiet && \
-	v.db.select -c  map=gt_sample_$(MASKVAL) layer=2 columns=x,y | xargs parallel --jobs 50% ./collect_sample.sh ::: && \
+	v.db.addtable   map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 table=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) columns='cat integer'  --overwrite --quiet && \
+	v.db.connect -o map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 table=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY)  --overwrite --quiet && \
+	v.db.addcol     map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns='x double precision, y double precision'  --overwrite --quiet && \
+	v.to.db         map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=1 type=point option=coor columns='x,y' --overwrite --quiet && \
+	v.db.select -c  map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns=x,y | xargs parallel --jobs 50% ./collect_sample.sh ::: && \
 	cat sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)-*_merge.txt > $@
 
 $(KNOWLEDGE): $(TRAINING_DATA)
