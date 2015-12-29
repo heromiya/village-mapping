@@ -1,5 +1,5 @@
 export TARGETTILE=$1
-
+export TRAINING_DATA=
 export TILE_QKEY=$(echo $1 | sed "s/..\/Bing\/gtiff\/${ZLEVEL}\/a//g; s/\.tif//g")
 export CNNOUTPUT=${ZLEVEL}/$(echo $1 | sed "s/..\/Bing\/gtiff\/${ZLEVEL}\/a/cnnresult\/Z${ZLEVEL}-a/g; s/\.tif/\.cnnresult\.tif/g")
 export CNNPROJ=${ZLEVEL}/$(echo $1   | sed "s/..\/Bing\/gtiff\/${ZLEVEL}\/a/cnnproj\/Z${ZLEVEL}-a/g; s/\.tif/\.cnnproj\.tif/g")
