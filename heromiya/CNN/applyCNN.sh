@@ -34,7 +34,7 @@ for TRAINING_QKEY in `cat ../completedSamples_EY.lst`; do
     r.mask -r
     for MASKVAL in 0 1; do
 	export MASKVAL
-	make sample_tmp/${ZLEVEL}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}_merge.txt
+	make sample_tmp/${ZLEVEL}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}_merge_allcoords.txt
     done
 done
 #EOF

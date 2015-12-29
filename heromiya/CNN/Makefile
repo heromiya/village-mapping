@@ -30,7 +30,7 @@ $(TILESVRT).info: $(TILESVRT).tif
 YINC = $(shell echo $(YRES) \* $(WINSIZE) / 2 + 1 | bc)
 XINC = $(shell echo $(XRES) \* $(WINSIZE) / 2 + 1 | bc)
 
-sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge.txt: $(TILESVRT).tif
+sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge_allcoords.txt: $(TILESVRT).tif
 	r.in.gdal -ok input=$< output=bing --overwrite --quiet && \
 	v.in.ogr -o dsn=../working_polygon_EY.shp output=gt_$(ZLEVEL)_$(TRAINING_QKEY) spatial=$(XMIN),$(YMIN),$(XMAX),$(YMAX) layer=working_polygon_EY type=boundary --overwrite --quiet && \
 	v.to.rast input=gt_$(ZLEVEL)_$(TRAINING_QKEY) type=area output=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) use=val --overwrite --quiet && \
@@ -39,8 +39,8 @@ sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge.txt: $(TILESVR
 	r.mask -o input=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) maskcats=$(MASKVAL) && \
 	g.region n=n-$(YINC) s=s+$(YINC) e=e-$(XINC) w=w+$(XINC) nsres=$(YRES) ewres=$(XRES) --overwrite && \
 	g.remove -f vect=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) && \
-	CELLNUM=`r.stats -cn MASK | cut -f 2 -d " "` && if [ $$CELLNUM -gt $(NSAMPLE) ]; then SAMPLENUM = $(NSAMPLE); else SAMPLENUM = $$CELLNUM; fi && \
-	r.random input=gt_rast n=$$SAMPLENUM vector_output=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) --overwrite --quiet && \
+	CELLNUM=`r.stats -cn MASK | cut -f 2 -d " "` && if [ $$CELLNUM -gt $(NSAMPLE) ]; then SAMPLENUM=$(NSAMPLE); else SAMPLENUM=100%; fi && \
+	r.random input=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) n=$$SAMPLENUM vector_output=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) --overwrite --quiet && \
 	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES) --overwrite && \
 	r.mask -r  --overwrite --quiet && \
 	v.db.addtable   map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 table=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) columns='cat integer'  --overwrite --quiet && \
@@ -53,8 +53,8 @@ sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge.txt: $(TILESVR
 $(KNOWLEDGE): $(TRAINING_DATA)
 	octave $(OCTAVEOPT) buildKnowledgeBase.m $(WINSIZE) $< $@
 
-$(TRAINING_DATA): sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-*_merge.txt	
-	cat $+ | grep -v \* | sed 's/||/|/g; s/|$//g' > $@
+$(TRAINING_DATA): sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-*_merge_allcoords.txt	
+	cat $+ | grep -v \* | sed 's/||/|/g; s/|$$//g' > $@
 
 $(CNNINPUT):
 	cd .. && iojs get.BingAerial.js $(QLONMIN) $(QLATMIN) $(QLONMAX) $(QLATMAX) $(ZLEVEL) | xargs parallel --joblog log.txt --jobs 10% "./get.Bing.Aerial.Sub.sh" ::: && cd CNN
