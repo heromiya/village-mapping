@@ -1,12 +1,15 @@
 export TARGETTILE=$1
 export TRAINING_DATA=
 export TILE_QKEY=$(echo $1 | sed "s/..\/Bing\/gtiff\/${ZLEVEL}\/a//g; s/\.tif//g")
-export CNNOUTPUT=${ZLEVEL}/$(echo $1 | sed "s/..\/Bing\/gtiff\/${ZLEVEL}\/a/cnnresult\/Z${ZLEVEL}-a/g; s/\.tif/\.cnnresult\.tif/g")
-export CNNPROJ=${ZLEVEL}/$(echo $1   | sed "s/..\/Bing\/gtiff\/${ZLEVEL}\/a/cnnproj\/Z${ZLEVEL}-a/g; s/\.tif/\.cnnproj\.tif/g")
+#export CNNOUTPUT=$(echo $1 | sed "s/..\/Bing\/gtiff\/${ZLEVEL}\/a/cnnresult\/${ZLEVEL}\/Z${ZLEVEL}-a/g; s/\.tif/\.cnnresult\.tif/g")
+#export CNNPROJ=${ZLEVEL}/$(echo $1   | sed "s/..\/Bing\/gtiff\/${ZLEVEL}\/a/cnnproj\/${ZLEVEL}\/Z${ZLEVEL}-a/g; s/\.tif/\.cnnproj\.tif/g")
+export CNNOUTPUT=cnnresult/${ZLEVEL}/Z${ZLEVEL}-a${TILE_QKEY}.cnnresult.tif
+export CNNPROJ=cnnproj/${ZLEVEL}/Z${ZLEVEL}-a${TILE_QKEY}.cnnproj.tif
 export CNNINPUT=cnninput/${ZLEVEL}/Z${ZLEVEL}-${TILE_QKEY}.tif
 
-export XRES=`gdalinfo $TARGETTILE | grep "Pixel Size" | sed 's/.*(\([0-9.]*\),-\([0-9.]*\))/\1/'`
-export YRES=`gdalinfo $TARGETTILE | grep "Pixel Size" | sed 's/.*(\([0-9.]*\),-\([0-9.]*\))/\2/'`
+PixelSize=`gdalinfo $TARGETTILE | grep "Pixel Size"`
+export XRES=`echo $PixelSize | sed 's/.*(\([0-9.]*\),-\([0-9.]*\))/\1/'`
+export YRES=`echo $PixelSize | sed 's/.*(\([0-9.]*\),-\([0-9.]*\))/\2/'`
 
 BB=`iojs inqTileBB.js $TILE_QKEY`
 export LONMIN=`echo $BB | cut -f 1 -d '|'`

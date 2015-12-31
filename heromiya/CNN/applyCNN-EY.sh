@@ -47,7 +47,7 @@ make $TRAINING_DATA $KNOWLEDGE
 for TEST_QKEY in `iojs ../get.BingAerial.js 96.1425 16.7656 96.3683 17.0239 15 | awk 'BEGIN{FS=","}{print $1}'`; do
     export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.vrt
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.lst
-    make $TILES $TILESVRT.tif $TILESVRT.info
+    make $TILES
 
     cat $TILES | xargs parallel --jobs 20% --joblog logs/cnnclassify.m-`date +"%F_%T"` ./cnnclassify.sub.sh :::
 #    bash -x ./cnnclassify.sub.sh `head -n 1 $TILES`
