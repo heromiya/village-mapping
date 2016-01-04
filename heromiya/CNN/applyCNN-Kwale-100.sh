@@ -2,13 +2,13 @@
 
 export ZLEVEL=$1
 export WINSIZE=18
-export NSAMPLE=1000
+export NSAMPLE=100
 
 export EPSG4326="+proj=longlat +datum=WGS84 +no_defs"
 export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
 export OCTAVEOPT="-q --no-history --no-init-file --no-line-editing --no-window-system"
 
-mkdir -p sample_tmp/$ZLEVEL
+mkdir -p sample_tmp/$ZLEVEL/$NSAMPLE
 eval `g.gisenv`
 g.proj -c proj4="$EPSG3857"
 db.connect driver=sqlite database='$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db'
@@ -34,7 +34,7 @@ for TRAINING_QKEY in `cat ../completedSamples_EY.lst ../completedSamples.lst`; d
     r.mask -r
     for MASKVAL in 0 1; do
 	export MASKVAL
-	make sample_tmp/${ZLEVEL}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}_merge_allcoords.txt
+	make sample_tmp/${ZLEVEL}/${NSAMPLE}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}_${NSAMPLE}_merge_allcoords.txt
     done
 done
 
@@ -47,6 +47,6 @@ for TEST_QKEY in `iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.lst
     make $TILES
 
-    cat $TILES | xargs parallel --jobs 30% --joblog logs/cnnclassify.m-`date +"%F_%T"` ./cnnclassify.sub.sh :::
+    cat $TILES | xargs parallel --jobs 30% --joblog logs/cnnclassify.m-`date +"%F_%T"` ./cnnclassify.sub.nsample.conf.sh :::
 done
 exit 0

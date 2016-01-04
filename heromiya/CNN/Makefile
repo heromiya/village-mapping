@@ -30,9 +30,9 @@ $(TILESVRT).info: $(TILESVRT).tif
 YINC = $(shell echo $(YRES) \* $(WINSIZE) / 2 + 1 | bc)
 XINC = $(shell echo $(XRES) \* $(WINSIZE) / 2 + 1 | bc)
 
-sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge_allcoords.txt: $(TILESVRT).tif
+sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE)_merge_allcoords.txt: $(TILESVRT).tif
 	r.in.gdal -ok input=$< output=bing --overwrite --quiet && \
-	v.in.ogr -o dsn=../working_polygon_EY.shp output=gt_$(ZLEVEL)_$(TRAINING_QKEY) spatial=$(XMIN),$(YMIN),$(XMAX),$(YMAX) layer=working_polygon_EY type=boundary --overwrite --quiet && \
+	v.in.ogr -o dsn=../working_polygon.sqlite output=gt_$(ZLEVEL)_$(TRAINING_QKEY) spatial=$(XMIN),$(YMIN),$(XMAX),$(YMAX) layer=working_polygon type=boundary --overwrite --quiet && \
 	v.to.rast input=gt_$(ZLEVEL)_$(TRAINING_QKEY) type=area output=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) use=val --overwrite --quiet && \
 	r.null map=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) null=0 --overwrite --quiet && \
 	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES) --overwrite && \
@@ -40,29 +40,49 @@ sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_merge_allcoords.txt:
 	g.region n=n-$(YINC) s=s+$(YINC) e=e-$(XINC) w=w+$(XINC) nsres=$(YRES) ewres=$(XRES) --overwrite && \
 	g.remove -f vect=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) && \
 	CELLNUM=`r.stats -cn MASK | cut -f 2 -d " "` && if [ $$CELLNUM -gt $(NSAMPLE) ]; then SAMPLENUM=$(NSAMPLE); else SAMPLENUM=100%; fi && \
-	r.random input=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) n=$$SAMPLENUM vector_output=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) --overwrite --quiet && \
+	if [ -n "$$CELLNUM" ]; then r.random input=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) n=$$SAMPLENUM vector_output=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) --overwrite --quiet && \
 	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES) --overwrite && \
 	r.mask -r  --overwrite --quiet && \
 	v.db.addtable   map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 table=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) columns='cat integer'  --overwrite --quiet && \
 	v.db.connect -o map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 table=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY)  --overwrite --quiet && \
 	v.db.addcol     map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns='x double precision, y double precision'  --overwrite --quiet && \
 	v.to.db         map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=1 type=point option=coor columns='x,y' --overwrite --quiet && \
-	v.db.select -c  map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns=x,y | xargs parallel --jobs 50% ./collect_sample.sh ::: && \
-	cat sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)-*_merge.txt > $@
+	v.db.select -c  map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns=x,y > sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst && \
+	cat sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst | xargs parallel --jobs 20% ./collect_sample.sh ::: && \
+	cat `awk 'BEGIN{FS="|"}{printf("sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)-%s_%s_merge.txt ",$$1,$$2)}' sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst` > $@; fi
+
+$(TRAINING_DATA): sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-*_$(NSAMPLE)_merge_allcoords.txt	
+	cat $+ | grep -v \* | sed 's/||/|/g; s/|$$//g' > $@
 
 $(KNOWLEDGE): $(TRAINING_DATA)
 	octave $(OCTAVEOPT) buildKnowledgeBase.m $(WINSIZE) $< $@
 
-$(TRAINING_DATA): sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-*_merge_allcoords.txt	
-	cat $+ | grep -v \* | sed 's/||/|/g; s/|$$//g' > $@
+define init_coords
+PixelSize=`gdalinfo $(TARGETTILE) | grep "Pixel Size"` && \
+export XRES=`echo $$PixelSize | sed 's/.*(\([0-9.]*\),-\([0-9.]*\))/\1/'` && \
+export YRES=`echo $$PixelSize | sed 's/.*(\([0-9.]*\),-\([0-9.]*\))/\2/'` && \
+BB=`iojs inqTileBB.js $(TILE_QKEY)` && \
+export LONMIN=`echo $$BB | cut -f 1 -d '|'` && \
+export LATMIN=`echo $$BB | cut -f 2 -d '|'` && \
+export LONMAX=`echo $$BB | cut -f 3 -d '|'` && \
+export LATMAX=`echo $$BB | cut -f 4 -d '|'` && \
+export QLONMIN=`echo "$$LONMIN - 0.0001" | bc` && \
+export QLATMIN=`echo "$$LATMIN - 0.0001" | bc` && \
+export QLONMAX=`echo "$$LONMAX + 0.0001" | bc` && \
+export QLATMAX=`echo "$$LATMAX + 0.0001" | bc` && \
+export XMIN=$$(echo "`echo $$LONMIN $$LATMIN | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}'` - $$XRES * ($(WINSIZE)/2-1)" | bc) && \
+export YMIN=$$(echo "`echo $$LONMIN $$LATMIN | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}'` - $$YRES * ($(WINSIZE)/2-1)" | bc) && \
+export XMAX=$$(echo "`echo $$LONMAX $$LATMAX | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$1}'` + $$XRES * ($(WINSIZE)/2+1)" | bc) && \
+export YMAX=$$(echo "`echo $$LONMAX $$LATMAX | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}'` + $$YRES * ($(WINSIZE)/2+1)" | bc)
+endef
+
 
 $(CNNINPUT):
-	cd .. && iojs get.BingAerial.js $(QLONMIN) $(QLATMIN) $(QLONMAX) $(QLATMAX) $(ZLEVEL) | xargs parallel --joblog log.txt --jobs 10% "./get.Bing.Aerial.Sub.sh" ::: && cd CNN
-	gdalwarp -te $(XMIN) $(YMIN) $(XMAX) $(YMAX) -tr $(XRES) $(YRES) -wm 2048 -multi -q -co COMPRESS=Deflate -overwrite `iojs ../get.BingAerial.js $(QLONMIN) $(QLATMIN) $(QLONMAX) $(QLATMAX) $(ZLEVEL) | awk -v zlevel=$(ZLEVEL) 'BEGIN{FS=","}{printf("../Bing/gtiff/%d/a%s.tif ",zlevel,$$1)}'` $@
+	$(init_coords) && cd .. && iojs get.BingAerial.js $$QLONMIN $$QLATMIN $$QLONMAX $$QLATMAX $$ZLEVEL | xargs parallel --joblog log.txt --jobs 10% "./get.Bing.Aerial.Sub.sh" ::: && cd CNN && \
+	gdalwarp -te $$XMIN $$YMIN $$XMAX $$YMAX -tr $$XRES $$YRES -wm 2048 -multi -q -co COMPRESS=Deflate -overwrite `iojs ../get.BingAerial.js $$QLONMIN $$QLATMIN $$QLONMAX $$QLATMAX $(ZLEVEL) | awk -v zlevel=$(ZLEVEL) 'BEGIN{FS=","}{printf("../Bing/gtiff/%d/a%s.tif ",zlevel,$$1)}'` $@
 
 $(CNNOUTPUT): $(CNNINPUT) $(KNOWLEDGE)
 	octave $(OCTAVEOPT) cnnclassify.m $(WINSIZE) $< $(KNOWLEDGE) $@
 
 $(CNNPROJ): $(CNNOUTPUT)
-	gdal_translate -a_srs EPSG:3857 -a_ullr $(XMIN) $(YMAX) $(XMAX) $(YMIN) -a_nodata 0 -co COMPRESS=Deflate $< $@
-
+	$(init_coords) && gdal_translate -a_srs EPSG:3857 -a_ullr $$XMIN $$YMAX $$XMAX $$YMIN -a_nodata 0 -co COMPRESS=Deflate $< $@
