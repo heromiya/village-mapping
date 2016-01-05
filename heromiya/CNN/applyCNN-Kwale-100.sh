@@ -15,7 +15,12 @@ db.connect driver=sqlite database='$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db'
 
 #cat ../completedSamples_EY.lst ../completedSamples.lst | xargs parallel --jobs 20% --joblog logs/prepareSamples.sh-`date +"%F_%T"` ./prepareSamples.sh :::
 
-for TRAINING_QKEY in `cat ../completedSamples_EY.lst ../completedSamples.lst`; do
+#for TRAINING_QKEY in `cat ../completedSamples_EY.lst ../completedSamples.lst`; do
+
+make completedSamples.lst
+TARGET_TMP=`mktemp`
+iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}' > $TARGET_TMP
+for TRAINING_QKEY in `grep -Ff completedSamples.lst $TARGET_TMP`;
     export TRAINING_QKEY
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TRAINING_QKEY.lst
     export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-$TRAINING_QKEY.vrt
@@ -37,6 +42,7 @@ for TRAINING_QKEY in `cat ../completedSamples_EY.lst ../completedSamples.lst`; d
 	make sample_tmp/${ZLEVEL}/${NSAMPLE}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}_${NSAMPLE}_merge_allcoords.txt
     done
 done
+rm -f $TARGET_TMP
 
 export TRAINING_DATA=training_data/Z${ZLEVEL}-training_data-$NSAMPLE-global.csv
 export KNOWLEDGE=knowledgebase/Z${ZLEVEL}-knowledgebase.$NSAMPLE-global.mat
@@ -45,6 +51,7 @@ make $TRAINING_DATA $KNOWLEDGE
 for TEST_QKEY in `iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}'`; do
     export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.vrt
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.lst
+    export TRAINING_QKEY=$TEST_QKEY
     make $TILES
 
     cat $TILES | xargs parallel --jobs 30% --joblog logs/cnnclassify.m-`date +"%F_%T"` ./cnnclassify.sub.nsample.conf.sh :::

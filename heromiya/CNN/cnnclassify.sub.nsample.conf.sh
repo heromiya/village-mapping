@@ -8,6 +8,6 @@ mkdir -p cnnproj/${ZLEVEL}/${NSAMPLE}
 mkdir -p cnninput/${ZLEVEL}/${NSAMPLE}
 export CNNOUTPUT=cnnresult/${ZLEVEL}/${NSAMPLE}/Z${ZLEVEL}-${NSAMPLE}-a${TILE_QKEY}.cnnresult.tif
 export CNNPROJ=cnnproj/${ZLEVEL}/${NSAMPLE}/Z${ZLEVEL}-${NSAMPLE}-a${TILE_QKEY}.cnnproj.tif
-export CNNINPUT=cnninput/${ZLEVEL}/${NSAMPLE}/Z${ZLEVEL}-${NSAMPLE}-${TILE_QKEY}.tif
+export CNNINPUT=cnninput/${ZLEVEL}/Z${ZLEVEL}-${TILE_QKEY}.tif
 
 make -rR $CNNINPUT $CNNOUTPUT $CNNPROJ

@@ -11,8 +11,7 @@ export OCTAVEOPT="-q --no-history --no-init-file --no-line-editing --no-window-s
 #:<<'#EOF'
 mkdir -p sample_tmp/$ZLEVEL
 eval `g.gisenv`
-g.proj -c proj4="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs <>"
-#db.connect driver=sqlite database=$GISDBASE/$LOCATION_NAME/$MAPSET/db.sqlite
+g.proj -c proj4="$EPSG3857"
 db.connect driver=sqlite database='$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db'
 
 for TRAINING_QKEY in `cat ../completedSamples_EY.lst`; do
@@ -34,11 +33,11 @@ for TRAINING_QKEY in `cat ../completedSamples_EY.lst`; do
     r.mask -r
     for MASKVAL in 0 1; do
 	export MASKVAL
-	make sample_tmp/${ZLEVEL}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}_merge_allcoords.txt
+	make sample_tmp/${ZLEVEL}/${NSAMPLE}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}_${NSAMPLE}_merge_allcoords.txt
     done
 done
-#EOF
 
+export TRAINING_SRC="`awk -v zlevel=$ZLEVEL -v nsample=$NSAMPLE '{printf(\"sample_tmp/%s/%s/Z%s-%s-0_%s_merge_allcoords.txt sample_tmp/%s/%s/Z%s-%s-1_%s_merge_allcoords.txt \",zlevel,nsample,zlevel,$1,nsample,zlevel,nsample,zlevel,$1,nsample)}' ../completedSamples_EY.lst`"
 export TRAINING_DATA=training_data/Z${ZLEVEL}-training_data-$NSAMPLE.csv
 export KNOWLEDGE=knowledgebase/Z${ZLEVEL}-knowledgebase.$NSAMPLE.mat
 make $TRAINING_DATA $KNOWLEDGE
