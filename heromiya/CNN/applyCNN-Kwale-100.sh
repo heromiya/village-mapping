@@ -20,40 +20,46 @@ db.connect driver=sqlite database='$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db'
 make completedSamples.lst
 TARGET_TMP=`mktemp`
 iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}' > $TARGET_TMP
-for TRAINING_QKEY in `grep -Ff completedSamples.lst $TARGET_TMP`;
+for TRAINING_QKEY in `grep -Ff completedSamples.lst $TARGET_TMP`; do
     export TRAINING_QKEY
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TRAINING_QKEY.lst
     export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-$TRAINING_QKEY.vrt
     make $TILES $TILESVRT.tif $TILESVRT.info
 
-    export XMIN=`grep "Upper Left"  $TILESVRT.info | sed 's/^Upper Left  (\([-.0-9]*\), \([-.0-9]*\)) .*/\1/g'`
-    export YMIN=`grep "Lower Right" $TILESVRT.info | sed 's/^Lower Right (\([-.0-9]*\), \([-.0-9]*\)) .*/\2/g'`
-    export XMAX=`grep "Lower Right" $TILESVRT.info | sed 's/^Lower Right (\([-.0-9]*\), \([-.0-9]*\)) .*/\1/g'`
-    export YMAX=`grep "Upper Left"  $TILESVRT.info | sed 's/^Upper Left  (\([-.0-9]*\), \([-.0-9]*\)) .*/\2/g'`
+    export XMIN=`grep "Upper Left"  $TILESVRT.info | sed 's/^.*(.\([-.0-9]*\), \([-.0-9]*\)) .*/\1/g'`
+    export YMIN=`grep "Lower Right" $TILESVRT.info | sed 's/^.*(.\([-.0-9]*\), \([-.0-9]*\)) .*/\2/g'`
+    export XMAX=`grep "Lower Right" $TILESVRT.info | sed 's/^.*(.\([-.0-9]*\), \([-.0-9]*\)) .*/\1/g'`
+    export YMAX=`grep "Upper Left"  $TILESVRT.info | sed 's/^.*(.\([-.0-9]*\), \([-.0-9]*\)) .*/\2/g'`
 
-    export XRES=`grep "Pixel Size"  $TILESVRT.info | sed 's/Pixel Size = (\([-.0-9]*\),\([-.0-9]*\))/\1/'`
-    export YRES=`grep "Pixel Size"  $TILESVRT.info | sed 's/Pixel Size = (\([-.0-9]*\),\([-.0-9]*\))/\2/; s/-//'`
+    export XRES=`grep "Pixel Size"  $TILESVRT.info | sed 's/.*(\([-.0-9]*\),\([-.0-9]*\))/\1/'`
+    export YRES=`grep "Pixel Size"  $TILESVRT.info | sed 's/.*(\([-.0-9]*\),\([-.0-9]*\))/\2/; s/-//'`
 
     g.region n=$YMAX s=$YMIN e=$XMAX w=$XMIN nsres=$YRES ewres=$XRES --overwrite --quiet
 
     r.mask -r
-    for MASKVAL in 0 1; do
+    for MASKVAL in 0 1 2; do
 	export MASKVAL
-	make sample_tmp/${ZLEVEL}/${NSAMPLE}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}_${NSAMPLE}_merge_allcoords.txt
+	make -rR sample_tmp/${ZLEVEL}/${NSAMPLE}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}_${NSAMPLE}_merge_allcoords.txt
     done
 done
-rm -f $TARGET_TMP
 
+export TRAINING_SRC="`grep -Ff completedSamples.lst $TARGET_TMP | awk -v zlevel=$ZLEVEL -v nsample=$NSAMPLE '{printf(\"sample_tmp/%s/%s/Z%s-%s-0_%s_merge_allcoords.txt sample_tmp/%s/%s/Z%s-%s-1_%s_merge_allcoords.txt \",zlevel,nsample,zlevel,$1,nsample,zlevel,nsample,zlevel,$1,nsample)}'`"
 export TRAINING_DATA=training_data/Z${ZLEVEL}-training_data-$NSAMPLE-global.csv
 export KNOWLEDGE=knowledgebase/Z${ZLEVEL}-knowledgebase.$NSAMPLE-global.mat
-make $TRAINING_DATA $KNOWLEDGE
+make -rR $TRAINING_DATA $KNOWLEDGE
 
-for TEST_QKEY in `iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}'`; do
+for TEST_QKEY in \
+    `iojs ../get.BingAerial.js 39.304    -4.147    39.328    -4.130    15 | awk 'BEGIN{FS=","}{print $1}'` \
+    `iojs ../get.BingAerial.js 39.327    -4.262    39.366    -4.235    15 | awk 'BEGIN{FS=","}{print $1}'` \
+    `iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}'` \
+    ; do
     export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.vrt
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.lst
     export TRAINING_QKEY=$TEST_QKEY
-    make $TILES
+    make -rR $TILES
 
-    cat $TILES | xargs parallel --jobs 30% --joblog logs/cnnclassify.m-`date +"%F_%T"` ./cnnclassify.sub.nsample.conf.sh :::
+    cat $TILES | xargs parallel --jobs 64 --joblog logs/cnnclassify.sub.nsample.conf.sh.$ZLEVEL.$NSAMPLE.$TEST_QKEY.`date +"%F_%T"` ./cnnclassify.sub.nsample.conf.sh :::
 done
+
+rm -f $TARGET_TMP
 exit 0
