@@ -31,7 +31,7 @@ cnn.layers = {
               struct('type', 'c', 'outputmaps', 12, 'kernelsize', 4) %convolution layer
               struct('type', 's', 'scale', 2) %subsampling layer
 };
-train_y = [train_src(:,3)'; (train_src(:,3)'-1).^2 ];
+train_y = [train_src(:,3)' == 1; train_src(:,3)' == 0; train_src(:,3)' == 3 ];
 train_y = double(train_y);
 
 rand('state',0)

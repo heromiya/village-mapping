@@ -33,29 +33,32 @@ groundTruth.sqlite: ../../Data/groundTruth/*.sqlite
 	echo "CREATE TABLE road_merge (id INTEGER PRIMARY KEY, flag INTEGER); SELECT AddGeometryColumn ('road_merge','geometry',3857,'GEOMETRY',2); INSERT INTO road_merge (geometry,flag) SELECT UnaryUnion(ST_Collect(MakeValid(geometry))) as geometry,'3' FROM road;" | spatialite $@
 
 sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE)_merge_allcoords.txt: $(TILESVRT).tif groundTruth.sqlite
-	r.mask -r --overwrite --quiet && \
-	r.in.gdal -ok input=$< output=bing --overwrite --quiet && \
-	v.in.ogr -o dsn=groundTruth.sqlite output=work_$(ZLEVEL)_$(TRAINING_QKEY)  spatial=$(XMIN),$(YMIN),$(XMAX),$(YMAX) layer=working_polygon type=boundary --overwrite && \
-	v.in.ogr -o dsn=groundTruth.sqlite output=cloud_$(ZLEVEL)_$(TRAINING_QKEY) spatial=$(XMIN),$(YMIN),$(XMAX),$(YMAX) layer=cloud           type=boundary --overwrite && \
-	v.to.rast input=work_$(ZLEVEL)_$(TRAINING_QKEY)  type=area output=work_rast_$(ZLEVEL)_$(TRAINING_QKEY)  use=val --overwrite --quiet && \
-	v.to.rast input=cloud_$(ZLEVEL)_$(TRAINING_QKEY) type=area output=cloud_rast_$(ZLEVEL)_$(TRAINING_QKEY) use=val --overwrite --quiet && \
-	r.null map=work_rast_$(ZLEVEL)_$(TRAINING_QKEY) null=0 --overwrite --quiet && \
-	r.mapcalc "gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) = if(isnull(cloud_rast_$(ZLEVEL)_$(TRAINING_QKEY)), work_rast_$(ZLEVEL)_$(TRAINING_QKEY),2)" && \
+	r.mask -r   && \
+	r.in.gdal -ok input=$< output=bing && \
+	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES) && \
+	v.in.ogr -o dsn=groundTruth.sqlite output=work_$(ZLEVEL)_$(TRAINING_QKEY)  spatial=$(XMIN),$(YMIN),$(XMAX),$(YMAX) layer=gt_merge type=boundary  && \
+	v.in.ogr -o dsn=groundTruth.sqlite output=cloud_$(ZLEVEL)_$(TRAINING_QKEY) spatial=$(XMIN),$(YMIN),$(XMAX),$(YMAX) layer=cloud_merge type=boundary  && \
+	v.in.ogr -o dsn=groundTruth.sqlite output=road_$(ZLEVEL)_$(TRAINING_QKEY)  spatial=$(XMIN),$(YMIN),$(XMAX),$(YMAX) layer=road_merge type=boundary  && \
+	v.to.rast input=work_$(ZLEVEL)_$(TRAINING_QKEY)  type=area output=work_rast_$(ZLEVEL)_$(TRAINING_QKEY)  use=attr column=flag   && \
+	v.to.rast input=cloud_$(ZLEVEL)_$(TRAINING_QKEY) type=area output=cloud_rast_$(ZLEVEL)_$(TRAINING_QKEY) use=attr column=flag   && \
+	v.to.rast input=road_$(ZLEVEL)_$(TRAINING_QKEY) type=area output=road_rast_$(ZLEVEL)_$(TRAINING_QKEY)  use=attr column=flag   && \
+	r.null map=work_rast_$(ZLEVEL)_$(TRAINING_QKEY) null=0   && \
+	r.mapcalc "gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) = if(isnull(cloud_rast_$(ZLEVEL)_$(TRAINING_QKEY)), if(isnull(road_rast_$(ZLEVEL)_$(TRAINING_QKEY)),work_rast_$(ZLEVEL)_$(TRAINING_QKEY),3),2)" && \
 	printf "2 = 1\n* = NULL" | r.reclass input=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) output=cloudmask_$(ZLEVEL)_$(TRAINING_QKEY) rules=- && \
 	r.buffer input=cloudmask_$(ZLEVEL)_$(TRAINING_QKEY) output=cloudmask_$(ZLEVEL)_$(TRAINING_QKEY)_buf distances=$(BUFINC) units=meters && \
 	r.mapcalc "catmask_$(ZLEVEL)_$(TRAINING_QKEY) = if(isnull(cloudmask_$(ZLEVEL)_$(TRAINING_QKEY)_buf) && gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) == $(MASKVAL),1,0)" && \
-	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES) --overwrite && \
+	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES)  && \
 	r.mask -o input=catmask_$(ZLEVEL)_$(TRAINING_QKEY) maskcats=1 && \
-	g.region n=n-$(YINC) s=s+$(YINC) e=e-$(XINC) w=w+$(XINC) nsres=$(YRES) ewres=$(XRES) --overwrite && \
+	g.region n=n-$(YINC) s=s+$(YINC) e=e-$(XINC) w=w+$(XINC) nsres=$(YRES) ewres=$(XRES)  && \
 	g.remove -f vect=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) && \
 	CELLNUM=`r.stats -cn MASK | cut -f 2 -d " "` && if [ -n "$$CELLNUM" ]; then if [ $$CELLNUM -gt $(NSAMPLE) ]; then SAMPLENUM=$(NSAMPLE); else SAMPLENUM=100%; fi && \
-	r.random input=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) n=$$SAMPLENUM vector_output=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) --overwrite --quiet && \
-	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES) --overwrite && \
-	r.mask -r --overwrite --quiet && \
-	v.db.addtable   map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 table=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) columns='cat integer'  --overwrite --quiet && \
-	v.db.connect -o map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 table=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY)  --overwrite --quiet && \
-	v.db.addcol     map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns='x double precision, y double precision'  --overwrite --quiet && \
-	v.to.db         map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=1 type=point option=coor columns='x,y' --overwrite --quiet && \
+	r.random input=gt_rast_$(ZLEVEL)_$(TRAINING_QKEY) n=$$SAMPLENUM vector_output=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY)   && \
+	g.region n=$(YMAX) s=$(YMIN) e=$(XMAX) w=$(XMIN) nsres=$(YRES) ewres=$(XRES)  && \
+	r.mask -r   && \
+	v.db.addtable   map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 table=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) columns='cat integer'    && \
+	v.db.connect -o map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 table=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY)    && \
+	v.db.addcol     map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns='x double precision, y double precision'    && \
+	v.to.db         map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=1 type=point option=coor columns='x,y'   && \
 	v.db.select -c  map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns=x,y > sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst && \
 	cat sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst | xargs parallel --jobs 50 ./collect_sample.sh ::: && \
 	cat `awk 'BEGIN{FS="|"}{printf("sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)-%s_%s_merge.txt ",$$1,$$2)}' sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst` > $@; else touch $@; fi
