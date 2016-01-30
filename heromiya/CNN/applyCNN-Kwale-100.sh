@@ -23,8 +23,10 @@ db.connect driver=sqlite database='$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db'
 make completedSamples.lst
 TARGET_TMP=`mktemp`
 iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}' > $TARGET_TMP
-#for TRAINING_QKEY in `grep -Ff completedSamples.lst $TARGET_TMP`; do
-for TRAINING_QKEY in 300110331111121 300110331111123; do
+
+:<<'#EOF'
+for TRAINING_QKEY in `grep -Ff completedSamples.lst $TARGET_TMP`; do
+#for TRAINING_QKEY in 300110331111121 300110331111123; do
     export TRAINING_QKEY
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TRAINING_QKEY.lst
     export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-$TRAINING_QKEY.vrt
@@ -41,24 +43,26 @@ for TRAINING_QKEY in 300110331111121 300110331111123; do
     g.region n=$YMAX s=$YMIN e=$XMAX w=$XMIN nsres=$YRES ewres=$XRES --overwrite --quiet
 
     r.mask -r
-    for MASKVAL in 0 1 3; do
+    for MASKVAL in 0 1; do
 	export MASKVAL
 	make -rR sample_tmp/${ZLEVEL}/${NSAMPLE}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}_${NSAMPLE}_merge_allcoords.txt
     done
 done
+#EOF
 
-#export TRAINING_SRC="`grep -Ff completedSamples.lst $TARGET_TMP | awk -v zlevel=$ZLEVEL -v nsample=$NSAMPLE '{printf(\"sample_tmp/%s/%s/Z%s-%s-0_%s_merge_allcoords.txt sample_tmp/%s/%s/Z%s-%s-1_%s_merge_allcoords.txt sample_tmp/%s/%s/Z%s-%s-3_%s_merge_allcoords.txt \",zlevel,nsample,zlevel,$1,nsample,zlevel,nsample,zlevel,$1,nsample,zlevel,nsample,zlevel,$1,nsample)}'`"
-export TRAINING_SRC="`printf "300110331111121\n300110331111123" | awk -v zlevel=$ZLEVEL -v nsample=$NSAMPLE '{printf(\"sample_tmp/%s/%s/Z%s-%s-0_%s_merge_allcoords.txt sample_tmp/%s/%s/Z%s-%s-1_%s_merge_allcoords.txt sample_tmp/%s/%s/Z%s-%s-3_%s_merge_allcoords.txt \",zlevel,nsample,zlevel,$1,nsample,zlevel,nsample,zlevel,$1,nsample,zlevel,nsample,zlevel,$1,nsample)}'`"
-export TRAINING_DATA=training_data/Z${ZLEVEL}-training_data-$NSAMPLE-road_test.csv
-export KNOWLEDGE=knowledgebase/Z${ZLEVEL}-knowledgebase.$NSAMPLE-road_test.mat
-make -rR $TRAINING_DATA $KNOWLEDGE
+export TRAINING_SRC="`grep -Ff completedSamples.lst $TARGET_TMP | awk -v zlevel=$ZLEVEL -v nsample=$NSAMPLE '{printf(\"sample_tmp/%s/%s/Z%s-%s-0_%s_merge_allcoords.txt sample_tmp/%s/%s/Z%s-%s-1_%s_merge_allcoords.txt \",zlevel,nsample,zlevel,$1,nsample,zlevel,nsample,zlevel,$1,nsample)}'`"
+#export TRAINING_SRC="`printf "300110331111121\n300110331111123" | awk -v zlevel=$ZLEVEL -v nsample=$NSAMPLE '{printf(\"sample_tmp/%s/%s/Z%s-%s-0_%s_merge_allcoords.txt sample_tmp/%s/%s/Z%s-%s-1_%s_merge_allcoords.txt sample_tmp/%s/%s/Z%s-%s-3_%s_merge_allcoords.txt \",zlevel,nsample,zlevel,$1,nsample,zlevel,nsample,zlevel,$1,nsample,zlevel,nsample,zlevel,$1,nsample)}'`"
+export TRAINING_DATA=training_data/Z${ZLEVEL}-training_data-$NSAMPLE-global.csv
+export KNOWLEDGE=knowledgebase/Z${ZLEVEL}-knowledgebase.$NSAMPLE-global.mat
+#make -rR $TRAINING_DATA $KNOWLEDGE
 
 
-#    `iojs ../get.BingAerial.js 39.304    -4.147    39.328    -4.130    15 | awk 'BEGIN{FS=","}{print $1}'` 
-#    `iojs ../get.BingAerial.js 39.327    -4.262    39.366    -4.235    15 | awk 'BEGIN{FS=","}{print $1}'` 
-#    `iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}'` 
 
-for TEST_QKEY in 300110331111121 300110331111123; do
+#for TEST_QKEY in 300110331111121 300110331111123; do
+for TEST_QKEY in \
+    `iojs ../get.BingAerial.js 39.304    -4.147    39.328    -4.130    15 | awk 'BEGIN{FS=","}{print $1}'` \
+    `iojs ../get.BingAerial.js 39.327    -4.262    39.366    -4.235    15 | awk 'BEGIN{FS=","}{print $1}'` \
+    `iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}'`; do
     export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.vrt
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TEST_QKEY.lst
     export TRAINING_QKEY=$TEST_QKEY
