@@ -1,3 +1,6 @@
+$(MOSAIC): $(MOSAIC_INPUTS)
+	gdalwarp -wm 2048 -multi -overwrite $(MOSAIC_INPUTS) $(MOSAIC) 
+
 completedSamples.lst: ../../Data/groundTruth/*.xlsx
 	for f in $+; do xlsx2csv -a $$f | sed 's/^[0-9],//g; s/^[0-9].,//g; s/^[0-9]..,//g; s/^[0-9]...,//g' | grep ^[0-9] | awk 'BEGIN{FS=","}/C/{printf("%s\n",$$1)}'; done | sort | uniq > $@
 
@@ -12,7 +15,7 @@ $(TILES):
 	LATMAX=$$(echo "`echo $$BB | cut -f 4 -d '|'` - 0.0001" | bc) && \
 	cd .. && \
 	export TILES=CNN/$@ && \
-	iojs get.BingAerial.js $$LONMIN $$LATMIN $$LONMAX $$LATMAX $$ZLEVEL | xargs parallel --jobs 64 ./applyCNN.sub.wget.sh :::
+	iojs get.BingAerial.js $$LONMIN $$LATMIN $$LONMAX $$LATMAX $$ZLEVEL | parallel --jobs 32 ./applyCNN.sub.wget.sh :::
 
 $(TILESVRT): $(TILES)
 	gdalbuildvrt -overwrite -input_file_list $< $@
@@ -23,6 +26,9 @@ $(TILESVRT).info: $(TILESVRT).tif
 YINC = $(shell echo $(YRES) \* $(WINSIZE) / 2 + 1 | bc)
 XINC = $(shell echo $(XRES) \* $(WINSIZE) / 2 + 1 | bc)
 BUFINC = $(shell echo "(($(XRES) + $(YRES)) / 2) * $(WINSIZE) / 2 + 1" | bc)
+
+Thiri_working_polygon_EY.sqlite: Thiri_working_polygon_EY.shp
+	ogr2ogr -f SQLite -a_srs EPSG:3857 -nln working_polygon $@ $<
 
 groundTruth.sqlite: ../../Data/groundTruth/*.sqlite
 	for f in $+; do ogr2ogr -append -f SQLite -a_srs "EPSG:3857" -dsco "SPATIALITE=YES" $@ $$f -nln working_polygon -nlt PROMOTE_TO_MULTI working_polygon; done && \
@@ -60,8 +66,9 @@ sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE
 	v.db.addcol     map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns='x double precision, y double precision'    && \
 	v.to.db         map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=1 type=point option=coor columns='x,y'   && \
 	v.db.select -c  map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns=x,y > sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst && \
-	cat sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst | xargs parallel --jobs 50 ./collect_sample.sh ::: && \
+	cat sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst | parallel --jobs 32 ./collect_sample.sh ::: && \
 	cat `awk 'BEGIN{FS="|"}{printf("sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)-%s_%s_merge.txt ",$$1,$$2)}' sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst` > $@; else touch $@; fi
+#	cat sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst | xargs -n 1 ./collect_sample.sh && 
 
 #$(TRAINING_DATA): sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-*_$(NSAMPLE)_merge_allcoords.txt	
 $(TRAINING_DATA): $(TRAINING_SRC)
@@ -90,7 +97,7 @@ export YMAX=$$(echo "`echo $$LONMAX $$LATMAX | cs2cs $(EPSG4326) +to $(EPSG3857)
 endef
 
 $(CNNINPUT):
-	$(init_coords) && cd .. && iojs get.BingAerial.js $$QLONMIN $$QLATMIN $$QLONMAX $$QLATMAX $$ZLEVEL | xargs parallel --joblog log.txt --jobs 64 "./get.Bing.Aerial.Sub.sh" ::: && cd CNN && \
+	$(init_coords) && cd .. && iojs get.BingAerial.js $$QLONMIN $$QLATMIN $$QLONMAX $$QLATMAX $$ZLEVEL | parallel --joblog log.txt --jobs 32 "./get.Bing.Aerial.Sub.sh" ::: && cd CNN && \
 	gdalwarp -te $$XMIN $$YMIN $$XMAX $$YMAX -tr $$XRES $$YRES -wm 2048 -multi -q -co COMPRESS=Deflate -overwrite `iojs ../get.BingAerial.js $$QLONMIN $$QLATMIN $$QLONMAX $$QLATMAX $(ZLEVEL) | awk -v zlevel=$(ZLEVEL) 'BEGIN{FS=","}{printf("../Bing/gtiff/%d/a%s.tif ",zlevel,$$1)}'` $@
 
 $(CNNOUTPUT): $(CNNINPUT) $(KNOWLEDGE)
