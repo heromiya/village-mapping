@@ -17,16 +17,16 @@ for QKEY in `grep -Ff completedSamples.lst $TARGET_TMP`; do
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-${TRAINING_QKEY}.lst
 
     make $TILES $TILESVRT.tif $TILESVRT.info
-    XMIN=`grep "Lower Left" $TILESVRT.info | sed 's/.*(.\([-.0-9]*\),.\([-.0-9]*\)).*/\1/'`
-    YMIN=`grep "Lower Left" $TILESVRT.info | sed 's/.*(.\([-.0-9]*\),.\([-.0-9]*\)).*/\2/'`
-    XMAX=`grep "Upper Right" $TILESVRT.info | sed 's/.*(.\([-.0-9]*\),.\([-.0-9]*\)).*/\1/'`
-    YMAX=`grep "Upper Right" $TILESVRT.info | sed 's/.*(.\([-.0-9]*\),.\([-.0-9]*\)).*/\2/'`
+    XMIN=`grep "Lower Left" $TILESVRT.info | sed 's/.*(\([-.0-9]*\),.\([-.0-9]*\)).*/\1/'`
+    YMIN=`grep "Lower Left" $TILESVRT.info | sed 's/.*(\([-.0-9]*\),.\([-.0-9]*\)).*/\2/'`
+    XMAX=`grep "Upper Right" $TILESVRT.info | sed 's/.*(\([-.0-9]*\),.\([-.0-9]*\)).*/\1/'`
+    YMAX=`grep "Upper Right" $TILESVRT.info | sed 's/.*(\([-.0-9]*\),.\([-.0-9]*\)).*/\2/'`
     XRES=`grep "Pixel Size" $TILESVRT.info | sed 's/.*(\([.0-9]*\).,-\([.0-9]*\))/\1/'`
     YRES=`grep "Pixel Size" $TILESVRT.info | sed 's/.*(\([.0-9]*\).,-\([.0-9]*\))/\2/'`
     gdal_rasterize -l gt_merge    -a flag -init 0 -te $XMIN $YMIN $XMAX $YMAX -tr $XRES $YRES -ot Byte -q groundTruth.sqlite work${QKEY}.tif
     gdal_rasterize -l cloud_merge -a flag -init 0 -te $XMIN $YMIN $XMAX $YMAX -tr $XRES $YRES -ot Byte -q groundTruth.sqlite cloud${QKEY}.tif
-    gdal_calc.py -A work${QKEY}.tif -B cloud${QKEY}.tif --calc="where(B==2,2,A)" --outfile=dataForShao/r${QKEY}-Z${ZLEVEL}.tif
-    gdal_translate $TILESVRT.tif dataForShao/a${QKEY}-Z${ZLEVEL}.tif
+    gdal_calc.py -A work${QKEY}.tif -B cloud${QKEY}.tif --calc="where(B==2,2,A)" --outfile=dataForShao/Z${ZLEVEL}/r${QKEY}-Z${ZLEVEL}.tif
+    gdal_translate $TILESVRT.tif dataForShao/Z${ZLEVEL}/a${QKEY}-Z${ZLEVEL}.tif
     rm -f work${QKEY}.tif cloud${QKEY}.tif
 done
 
