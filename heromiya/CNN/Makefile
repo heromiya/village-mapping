@@ -15,7 +15,7 @@ $(TILES):
 	LATMAX=$$(echo "`echo $$BB | cut -f 4 -d '|'` - 0.0001" | bc) && \
 	cd .. && \
 	export TILES=CNN/$@ && \
-	iojs get.BingAerial.js $$LONMIN $$LATMIN $$LONMAX $$LATMAX $$ZLEVEL | parallel --jobs $NPROCESS ./applyCNN.sub.wget.sh :::
+	iojs get.BingAerial.js $$LONMIN $$LATMIN $$LONMAX $$LATMAX $$ZLEVEL | parallel --jobs $(NPROCESS) ./applyCNN.sub.wget.sh :::
 
 $(TILESVRT): $(TILES)
 	gdalbuildvrt -overwrite -input_file_list $< $@
@@ -66,7 +66,7 @@ sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE
 	v.db.addcol     map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns='x double precision, y double precision'    && \
 	v.to.db         map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=1 type=point option=coor columns='x,y'   && \
 	v.db.select -c  map=gt_sample_$(MASKVAL)_$(ZLEVEL)_$(TRAINING_QKEY) layer=2 columns=x,y > sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst && \
-	cat sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst | parallel --jobs $NPROCESS ./collect_sample.sh ::: && \
+	cat sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst | parallel --jobs $(NPROCESS) ./collect_sample.sh ::: && \
 	cat `awk 'BEGIN{FS="|"}{printf("sample_tmp/$(ZLEVEL)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)-%s_%s_merge.txt ",$$1,$$2)}' sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst` > $@; else touch $@; fi
 #	cat sample_tmp/$(ZLEVEL)/$(NSAMPLE)/Z$(ZLEVEL)-$(TRAINING_QKEY)-$(MASKVAL)_$(NSAMPLE).lst | xargs -n 1 ./collect_sample.sh && 
 
@@ -97,7 +97,7 @@ export YMAX=$$(echo "`echo $$LONMAX $$LATMAX | cs2cs $(EPSG4326) +to $(EPSG3857)
 endef
 
 $(CNNINPUT):
-	$(init_coords) && cd .. && iojs get.BingAerial.js $$QLONMIN $$QLATMIN $$QLONMAX $$QLATMAX $$ZLEVEL | parallel --joblog log.txt --jobs $NPROCESS "./get.Bing.Aerial.Sub.sh" ::: && cd CNN && \
+	$(init_coords) && cd .. && iojs get.BingAerial.js $$QLONMIN $$QLATMIN $$QLONMAX $$QLATMAX $$ZLEVEL | parallel --joblog log.txt --jobs $(NPROCESS) "./get.Bing.Aerial.Sub.sh" ::: && cd CNN && \
 	gdalwarp -te $$XMIN $$YMIN $$XMAX $$YMAX -tr $$XRES $$YRES -wm 2048 -multi -q -co COMPRESS=Deflate -overwrite `iojs ../get.BingAerial.js $$QLONMIN $$QLATMIN $$QLONMAX $$QLATMAX $(ZLEVEL) | awk -v zlevel=$(ZLEVEL) 'BEGIN{FS=","}{printf("../Bing/gtiff/%d/a%s.tif ",zlevel,$$1)}'` $@
 
 $(CNNOUTPUT): $(CNNINPUT) $(KNOWLEDGE)
