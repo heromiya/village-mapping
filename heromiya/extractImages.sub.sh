@@ -6,7 +6,7 @@ LATMIN=`echo $COORDS | cut -d '|' -f 2`
 LONMAX=`echo $COORDS | cut -d '|' -f 3`
 LATMAX=`echo $COORDS | cut -d '|' -f 4`
 iojs get.BingAerial.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args1.lst
-cat args1.lst | xargs parallel --joblog log/get.Bing.Aerial.Sub.sh.$$ --jobs 10% "./get.Bing.Aerial.Sub.sh" ::: 
+cat args1.lst | xargs parallel --joblog log/get.Bing.Aerial.Sub.sh.$$ --jobs 5 "./get.Bing.Aerial.Sub.sh" ::: 
 
 export MERGEDTILE=sampleImages/a${QKEY}-Z${ZLEVEL}.tif
 export MERGEINPUT="`awk 'BEGIN{FS=\",\"}{printf(\"Bing/gtiff/19/a%s.tif \",$1)}' args1.lst`"

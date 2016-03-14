@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /dias/users/miyazaki.h.u-tokyo/apps/bin/dash
 CENTER=$1
 
 X_CENTER=`echo $CENTER | cut -f 1 -d "|"`
@@ -8,7 +8,7 @@ BASENAME=sample_tmp/${ZLEVEL}/Z${ZLEVEL}-${TRAINING_QKEY}-${MASKVAL}-${X_CENTER}
 rm -f ${BASENAME}.input_coords.txt
 RANGE=`seq -$(echo "$WINSIZE / 2" | bc) $(echo "$WINSIZE / 2 - 1" | bc)`
 
-r.what input=bing.1,bing.2,bing.3 cache=30000 east_north=`for Y_SHIFT in $RANGE;do for X_SHIFT in $RANGE; do printf "%lf,%lf," $(echo "$X_CENTER + $X_SHIFT * $XRES" | bc) $(echo "$Y_CENTER + $Y_SHIFT * $YRES" | bc); done; done | sed 's/,$//g'` > $BASENAME.txt
+r.what input=bing.1,bing.2,bing.3 cache=30000 east_north=`for Y_SHIFT in $RANGE;do for X_SHIFT in $RANGE; do printf "%f,%f," $(echo "$X_CENTER + $X_SHIFT * $XRES" | bc) $(echo "$Y_CENTER + $Y_SHIFT * $YRES" | bc); done; done | sed 's/,$//g'` > $BASENAME.txt
 
 BAND1=`awk 'BEGIN{FS="|"; ORS="|"}{print $4}' $BASENAME.txt`
 BAND2=`awk 'BEGIN{FS="|"; ORS="|"}{print $5}' $BASENAME.txt`

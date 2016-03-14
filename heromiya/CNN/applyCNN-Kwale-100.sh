@@ -1,8 +1,9 @@
 #! /bin/bash
 
-export ZLEVEL=$1
+export ZLEVEL=17
 export WINSIZE=18
 export NSAMPLE=1000
+export NPROCESS=2
 
 export EPSG4326="+proj=longlat +datum=WGS84 +no_defs"
 export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
@@ -20,13 +21,14 @@ db.connect driver=sqlite database='$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db'
 
 #for TRAINING_QKEY in `cat ../completedSamples_EY.lst ../completedSamples.lst`; do
 
-export TARGET_EXTENT="96.1425 16.7656 96.3683 17.0239"
+#East Yangon
+#export TARGET_EXTENT="96.1425 16.7656 96.3683 17.0239"
+#Savannakhet
+export TARGET_EXTENT="104.733 15.8764 106.798 17.1136"
+#Kwale|39.2406|-4.28878|39.5308|-4.06411
 
 make completedSamples.lst
 TARGET_TMP=`mktemp`
-#Kwale
-#iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}' > $TARGET_TMP
-#East Yangon
 iojs ../get.BingAerial.js $TARGET_EXTENT 15 | awk 'BEGIN{FS=","}{print $1}' > $TARGET_TMP
 
 #:<<'#EOF'
@@ -64,7 +66,7 @@ export KNOWLEDGE=knowledgebase/Z${ZLEVEL}-knowledgebase.$NSAMPLE-`echo $TARGET_E
 #    `iojs ../get.BingAerial.js 39.327    -4.262    39.366    -4.235    15 | awk 'BEGIN{FS=","}{print $1}'`
 #    `iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}'`
 
-iojs ../get.BingAerial.js $TARGET_EXTENT 15 | awk 'BEGIN{FS=","}{print $1}' | parallel --jobs 10 ./cnnclassify.test_qkey.sub.sh :::
+iojs ../get.BingAerial.js $TARGET_EXTENT 15 | sort -r | awk 'BEGIN{FS=","}{print $1}' | parallel --jobs $NPROCESS ./cnnclassify.test_qkey.sub.sh :::
 
 rm -f $TARGET_TMP
 exit 0

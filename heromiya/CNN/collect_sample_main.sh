@@ -5,4 +5,4 @@ v.db.addtable   map=gt_sample_$MASKVAL table=gt_sample_$MASKVAL columns='cat int
 v.db.connect -o map=gt_sample_$MASKVAL table=gt_sample_$MASKVAL
 v.db.addcol     map=gt_sample_$MASKVAL columns='x double precision, y double precision'
 v.to.db         map=gt_sample_$MASKVAL type=point option=coor columns='x,y'
-v.db.select -c  map=gt_sample_$MASKVAL columns=x,y | xargs parallel --jobs 10% ./collect_sample.sh :::
+v.db.select -c  map=gt_sample_$MASKVAL columns=x,y | xargs parallel --jobs 5 ./collect_sample.sh :::

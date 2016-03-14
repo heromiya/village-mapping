@@ -17,7 +17,7 @@ for ROI in `cat ROI.lst`; do
     LONMAX=`echo $ROI | cut -d '|' -f 4`
     LATMAX=`echo $ROI | cut -d '|' -f 5`
     iojs get.BingAerial.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args.lst
-    cat args.lst | xargs parallel --joblog log.txt --jobs 10% "./get.Bing.Aerial.Sub.sh" ::: 
+    cat args.lst | xargs parallel --joblog log.txt --jobs 5 "./get.Bing.Aerial.Sub.sh" ::: 
 done
 
 cd Bing/gtiff
