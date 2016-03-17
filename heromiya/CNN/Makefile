@@ -13,9 +13,8 @@ $(TILES):
 	LATMIN=$$(echo "`echo $$BB | cut -f 2 -d '|'` + 0.0001" | bc) && \
 	LONMAX=$$(echo "`echo $$BB | cut -f 3 -d '|'` - 0.0001" | bc) && \
 	LATMAX=$$(echo "`echo $$BB | cut -f 4 -d '|'` - 0.0001" | bc) && \
-	cd .. && \
-	export TILES=CNN/$@ && \
-	iojs get.BingAerial.js $$LONMIN $$LATMIN $$LONMAX $$LATMAX $$ZLEVEL | parallel --jobs $(NPROCESS) ./applyCNN.sub.wget.sh :::
+	cd .. && export TILES=CNN/$@ && \
+	iojs get.BingAerial.js $$LONMIN $$LATMIN $$LONMAX $$LATMAX $$ZLEVEL | parallel --jobs 1 ./applyCNN.sub.wget.sh :::
 
 $(TILESVRT): $(TILES)
 	gdalbuildvrt -overwrite -input_file_list $< $@

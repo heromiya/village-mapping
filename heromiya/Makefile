@@ -1,8 +1,13 @@
+
+
 $(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).png:
 	wget --no-check-certificate -nc -O $@ "http://localhost:3857/service?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&BBOX=$(TILE_XMIN),$(TILE_YMIN),$(TILE_XMAX),$(TILE_YMAX)&SRS=EPSG:3857&WIDTH=$(WIDTH)&HEIGHT=$(HEIGHT)&LAYERS=Google%20Maps%20Satellite&STYLES=&FORMAT=image/png"
 
 $(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif: $(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).png
 	gdal_translate -a_srs EPSG:3857 -a_ullr $(TILE_XMIN) $(TILE_YMAX) $(TILE_XMAX) $(TILE_YMIN) -co COMPRESS=Deflate -expand rgb $< $@
+
+$(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif.info: $(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif
+	gdalinfo -mm -stats -hist -checksum -proj4 $(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif > $@ 2>&1
 
 Bing/jpeg/$(ZLEVEL)/a$(QKEY).jpeg:
 	mkdir -p `dirname $@`
@@ -10,6 +15,9 @@ Bing/jpeg/$(ZLEVEL)/a$(QKEY).jpeg:
 Bing/gtiff/$(ZLEVEL)/a$(QKEY).tif: Bing/jpeg/$(ZLEVEL)/a$(QKEY).jpeg
 	mkdir -p `dirname $@`
 	gdal_translate -a_ullr $(XMIN) $(YMAX) $(XMAX) $(YMIN) -a_srs EPSG:3857 -co COMPRESS=Deflate $< $@
+Bing/gtiff/$(ZLEVEL)/a$(QKEY).tif.info: Bing/gtiff/$(ZLEVEL)/a$(QKEY).tif
+	gdalinfo -mm -stats -hist -checksum -proj4 $< > $@ 2>&1
+
 
 $(MERGEDTILE): $(MERGEINPUT)
 	gdalwarp $+ $@
