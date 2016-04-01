@@ -68,9 +68,12 @@ export KNOWLEDGE=knowledgebase/Z${ZLEVEL}-knowledgebase.$NSAMPLE-`echo $TARGET_E
 #    `iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}'`
 
 #iojs ../get.BingAerial.js $TARGET_EXTENT 15 | sort -r | awk 'BEGIN{FS=","}{print $1}' | parallel --jobs ${NPROCESS} ./cnnclassify.test_qkey.sub.sh :::
-#iojs ../get.BingAerial.js $TARGET_EXTENT 15| awk 'BEGIN{FS=","}{print $1}' | parallel --jobs ${NPROCESS} --joblog logs/cnnclassify.sub.nsample.conf.sh-`date +"%F_%T"` 'export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-{}.vrt; export TILES=tileList/$ZLEVEL/Z$ZLEVEL-{}.lst; export TRAINING_QKEY={}; make -rR $TILES; for TILE in $(cat $TILES); do ./cnnclassify.sub.nsample.conf.sh $TILE; done' :::
-#| sort -r
+iojs ../get.BingAerial.js $TARGET_EXTENT 15| awk 'BEGIN{FS=","}{print $1}' | \
+    parallel --jobs ${NPROCESS} \
+	     --joblog logs/cnnclassify.sub.nsample.conf.sh-`date +"%F_%T"` \
+	     'export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-{}.vrt; export TILES=tileList/$ZLEVEL/Z$ZLEVEL-{}.lst; export TRAINING_QKEY={}; make -rR $TILES; for TILE in $(cat $TILES); do ./cnnclassify.sub.nsample.conf.sh $TILE; done' :::
 
+:<<'#EOF'
 for QKEY in `iojs ../get.BingAerial.js $TARGET_EXTENT 15| awk 'BEGIN{FS=","}{print $1}'`; do
     export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-${QKEY}.vrt
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-${QKEY}.lst
@@ -78,6 +81,7 @@ for QKEY in `iojs ../get.BingAerial.js $TARGET_EXTENT 15| awk 'BEGIN{FS=","}{pri
     make -rR $TILES
     for TILE in $(cat $TILES); do ./cnnclassify.sub.nsample.conf.sh $TILE; done
 done
+#EOF
 
 rm -f $TARGET_TMP
 exit 0
