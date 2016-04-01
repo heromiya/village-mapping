@@ -1,9 +1,10 @@
 #! /bin/bash
 
+source setenv.sh
 export ZLEVEL=17
 export WINSIZE=18
 export NSAMPLE=1000
-export NPROCESS=1
+export NPROCESS=8
 
 export EPSG4326="+proj=longlat +datum=WGS84 +no_defs"
 export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
@@ -22,16 +23,16 @@ db.connect driver=sqlite database='$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db'
 #for TRAINING_QKEY in `cat ../completedSamples_EY.lst ../completedSamples.lst`; do
 
 #East Yangon
-#export TARGET_EXTENT="96.1425 16.7656 96.3683 17.0239"
+export TARGET_EXTENT="96.1425 16.7656 96.3683 17.0239"
 #Savannakhet
-export TARGET_EXTENT="104.733 15.8764 106.798 17.1136"
+#export TARGET_EXTENT="104.733 15.8764 106.798 17.1136"
 #Kwale|39.2406|-4.28878|39.5308|-4.06411
 
 make completedSamples.lst
 TARGET_TMP=`mktemp`
 iojs ../get.BingAerial.js $TARGET_EXTENT 15 | awk 'BEGIN{FS=","}{print $1}' > $TARGET_TMP
 
-#:<<'#EOF'
+:<<'#EOF'
 for TRAINING_QKEY in `grep -Ff completedSamples.lst $TARGET_TMP`; do
     export TRAINING_QKEY
     export TILES=tileList/$ZLEVEL/Z$ZLEVEL-$TRAINING_QKEY.lst
@@ -66,7 +67,17 @@ export KNOWLEDGE=knowledgebase/Z${ZLEVEL}-knowledgebase.$NSAMPLE-`echo $TARGET_E
 #    `iojs ../get.BingAerial.js 39.327    -4.262    39.366    -4.235    15 | awk 'BEGIN{FS=","}{print $1}'`
 #    `iojs ../get.BingAerial.js 39.240627 -4.288781 39.530792 -4.064113 15 | awk 'BEGIN{FS=","}{print $1}'`
 
-iojs ../get.BingAerial.js $TARGET_EXTENT 15 | sort -r | awk 'BEGIN{FS=","}{print $1}' | parallel --jobs ${NPROCESS} ./cnnclassify.test_qkey.sub.sh :::
+#iojs ../get.BingAerial.js $TARGET_EXTENT 15 | sort -r | awk 'BEGIN{FS=","}{print $1}' | parallel --jobs ${NPROCESS} ./cnnclassify.test_qkey.sub.sh :::
+#iojs ../get.BingAerial.js $TARGET_EXTENT 15| awk 'BEGIN{FS=","}{print $1}' | parallel --jobs ${NPROCESS} --joblog logs/cnnclassify.sub.nsample.conf.sh-`date +"%F_%T"` 'export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-{}.vrt; export TILES=tileList/$ZLEVEL/Z$ZLEVEL-{}.lst; export TRAINING_QKEY={}; make -rR $TILES; for TILE in $(cat $TILES); do ./cnnclassify.sub.nsample.conf.sh $TILE; done' :::
+#| sort -r
+
+for QKEY in `iojs ../get.BingAerial.js $TARGET_EXTENT 15| awk 'BEGIN{FS=","}{print $1}'`; do
+    export TILESVRT=tileList/$ZLEVEL/Z$ZLEVEL-${QKEY}.vrt
+    export TILES=tileList/$ZLEVEL/Z$ZLEVEL-${QKEY}.lst
+    export TRAINING_QKEY=${QKEY}
+    make -rR $TILES
+    for TILE in $(cat $TILES); do ./cnnclassify.sub.nsample.conf.sh $TILE; done
+done
 
 rm -f $TARGET_TMP
 exit 0

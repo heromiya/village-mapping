@@ -14,7 +14,7 @@ $(TILES):
 	LONMAX=$$(echo "`echo $$BB | cut -f 3 -d '|'` - 0.0001" | bc) && \
 	LATMAX=$$(echo "`echo $$BB | cut -f 4 -d '|'` - 0.0001" | bc) && \
 	cd .. && export TILES=CNN/$@ && \
-	iojs get.BingAerial.js $$LONMIN $$LATMIN $$LONMAX $$LATMAX $$ZLEVEL | parallel --jobs 1 ./applyCNN.sub.wget.sh :::
+	for ARG in `iojs get.BingAerial.js $$LONMIN $$LATMIN $$LONMAX $$LATMAX $$ZLEVEL`; do ./applyCNN.sub.wget.sh; done
 
 $(TILESVRT): $(TILES)
 	gdalbuildvrt -overwrite -input_file_list $< $@
@@ -95,12 +95,12 @@ export XMAX=$$(echo "`echo $$LONMAX $$LATMAX | cs2cs $(EPSG4326) +to $(EPSG3857)
 export YMAX=$$(echo "`echo $$LONMAX $$LATMAX | cs2cs $(EPSG4326) +to $(EPSG3857) | awk '{print $$2}'` + $$YRES * ($(WINSIZE)/2+1)" | bc)
 endef
 
-$(CNNINPUT):
-	$(init_coords) && cd .. && iojs get.BingAerial.js $$QLONMIN $$QLATMIN $$QLONMAX $$QLATMAX $$ZLEVEL | parallel --joblog log.txt --jobs $(NPROCESS) "./get.Bing.Aerial.Sub.sh" ::: && cd CNN && \
-	gdalwarp -te $$XMIN $$YMIN $$XMAX $$YMAX -tr $$XRES $$YRES -wm 2048 -multi -q -co COMPRESS=Deflate -overwrite `iojs ../get.BingAerial.js $$QLONMIN $$QLATMIN $$QLONMAX $$QLATMAX $(ZLEVEL) | awk -v zlevel=$(ZLEVEL) 'BEGIN{FS=","}{printf("../Bing/gtiff/%d/a%s.tif ",zlevel,$$1)}'` $@
+$(CNNINPUT): $(INPUTSET)
+	cd .. && for ARG in `iojs get.BingAerial.js $(QLONMIN) $(QLATMIN) $(QLONMAX) $(QLATMAX) $(ZLEVEL)`; do ./get.Bing.Aerial.Sub.sh $$ARG; done && cd CNN && \
+	gdalwarp -te $(XMIN) $(YMIN) $(XMAX) $(YMAX) -tr $(XRES) $(YRES) -wm 2048 -multi -q -co COMPRESS=Deflate -overwrite $+ $@
 
 $(CNNOUTPUT): $(CNNINPUT) $(KNOWLEDGE)
 	octave $(OCTAVEOPT) cnnclassify.m $(WINSIZE) $< $(KNOWLEDGE) $@
 
 $(CNNPROJ): $(CNNOUTPUT)
-	$(init_coords) && gdal_translate -a_srs EPSG:3857 -a_ullr $$XMIN $$YMAX $$XMAX $$YMIN -a_nodata 0 -co COMPRESS=Deflate $< $@
+	gdal_translate -a_srs EPSG:3857 -a_ullr $(XMIN) $(YMAX) $(XMAX) $(YMIN) -a_nodata 0 -co COMPRESS=Deflate $< $@

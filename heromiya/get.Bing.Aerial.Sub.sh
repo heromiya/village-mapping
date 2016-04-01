@@ -12,7 +12,7 @@ XMIN=`echo $TLATMIN $TLONMIN | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $1}'`
 YMIN=`echo $TLATMIN $TLONMIN | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $2}'`
 XMAX=`echo $TLATMAX $TLONMAX | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $1}'`
 YMAX=`echo $TLATMAX $TLONMAX | cs2cs $EPSG4326 +to $EPSG3857 | awk '{print $2}'`
-export QKEY XMIN YMIN XMAX YMAX
+export QKEY XMIN YMIN XMAX YMAX ZLEVEL
 make Bing/gtiff/${ZLEVEL}/a${QKEY}.tif
 
 exit 0
