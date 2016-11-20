@@ -15,10 +15,12 @@ XMAX=11846834.28
 YMIN=1877639.61
 YMAX=1881557.83
 
-export ZLEVEL=17
+export ZLEVEL=18
 
 export EPSG4326="+proj=longlat +datum=WGS84 +no_defs"
 export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
+export WIDTH=256
+export HEIGHT=256
 
 nodejs get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args.lst
 for ARGS in `cat args.lst`;do
@@ -33,4 +35,5 @@ for ARGS in `cat args.lst`;do
     export TILE_XMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $1}'`
     export TILE_YMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $2}'`
     make GMap/gtiff/$ZLEVEL/Z$ZLEVEL.$TILEX.$TILEY.tif
+    sleep 1
 done
