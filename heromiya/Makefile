@@ -3,7 +3,7 @@ GMap/png/$(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).png:
 	wget -nc -O $@ "http://localhost:8080/service?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&BBOX=$(TILE_XMIN),$(TILE_YMIN),$(TILE_XMAX),$(TILE_YMAX)&SRS=EPSG:3857&WIDTH=$(WIDTH)&HEIGHT=$(HEIGHT)&LAYERS=Google%20Maps%20Satellite&STYLES=&FORMAT=image/png"
 #	wget --no-check-certificate -nc -O $@ "https://mt0.google.com/vt/lyrs=s@0&hl=en&x=$(TILEX)&y=$(TILEY)&z=$(ZLEVEL)"
 
-GMap/gtiff/$(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif: GMap/jpeg/$(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).png
+GMap/gtiff/$(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif: GMap/png/$(ZLEVEL)/Z$(ZLEVEL).$(TILEX).$(TILEY).png
 	mkdir -p `dirname $@`
 	gdal_translate -a_srs EPSG:3857 -a_ullr $(TILE_XMIN) $(TILE_YMAX) $(TILE_XMAX) $(TILE_YMIN) -co COMPRESS=Deflate $< $@
 

@@ -5,8 +5,9 @@ LONMIN=`echo $COORDS | cut -d '|' -f 1`
 LATMIN=`echo $COORDS | cut -d '|' -f 2`
 LONMAX=`echo $COORDS | cut -d '|' -f 3`
 LATMAX=`echo $COORDS | cut -d '|' -f 4`
-iojs get.BingAerial.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args1.lst
-cat args1.lst | xargs parallel --joblog log/get.Bing.Aerial.Sub.sh.$$ --jobs 5 "./get.Bing.Aerial.Sub.sh" ::: 
+nodejs get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args1.lst
+cat args1.lst | xargs parallel --joblog log/getGoogleMaps.Sub.sh.$$ "./getGoogleMaps.Sub.sh" ::: 
+:<<"#EOF"
 
 export MERGEDTILE=sampleImages/a${QKEY}-Z${ZLEVEL}.tif
 export MERGEINPUT="`awk 'BEGIN{FS=\",\"}{printf(\"Bing/gtiff/19/a%s.tif \",$1)}' args1.lst`"
@@ -19,3 +20,4 @@ XMAX=`gdalinfo $MERGEDTILE | grep "Upper Right" | sed 's/Upper Right *(\([0-9.-]
 YMAX=`gdalinfo $MERGEDTILE | grep "Upper Right" | sed 's/Upper Right *(\([0-9.-]*\), \([0-9.-]*\)) .*/\2/;'`
 
 gdal_rasterize -ot Byte -a_srs EPSG:3857 -a flag -l working_polygon -tr ${PixelSize[0]} ${PixelSize[1]} -te $XMIN $YMIN $XMAX $YMAX working_polygon.sqlite sampleImages/r${QKEY}-Z${ZLEVEL}.tif
+#EOF
