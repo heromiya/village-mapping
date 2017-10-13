@@ -23,5 +23,5 @@ OUTREF=sampleImages/$0.ref.tif
 rm -f  $0.ref.tif  $0.img.tif
 gdal_rasterize -ot Byte -a_srs EPSG:3857 -a flag -l working_polygon -tr $PixelSizeX $PixelSizeY -te $XMIN $YMIN $XMAX $YMAX working_polygon.sqlite $REFIMG
 
-gdalwarp -te $XMIN $YMIN $XMAX $YMAX -tr $PixelSizeX $PixelSizeY -wm 1024 -co "COMPRESS=Deflate" -co "BIGTIFF=YES" -overwrite Bing/gtiff/18/*.tif $OUTIMG
+gdalwarp -te $XMIN $YMIN $XMAX $YMAX -tr $PixelSizeX $PixelSizeY -wm 1024 -co "COMPRESS=Deflate" -co "BIGTIFF=YES" -overwrite GMap/gtiff/18/*.tif $OUTIMG
 
