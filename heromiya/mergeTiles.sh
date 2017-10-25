@@ -14,21 +14,7 @@ XMIN=`echo $LONMIN $LATMIN | proj $EPSG3857 | awk '{print $1}'`
 YMIN=`echo $LONMIN $LATMIN | proj $EPSG3857 | awk '{print $2}'`
 XMAX=`echo $LONMAX $LATMAX | proj $EPSG3857 | awk '{print $1}'`
 YMAX=`echo $LONMAX $LATMAX | proj $EPSG3857 | awk '{print $2}'`
+ARGFNAME=args/args.`basename $0`.lst
 
-nodejs get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $OZLEVEL > args/args.`basename $0`.lst
-for ARGS in `cat $ARGFNAME | head -n 1`; do
-    OTILE_X=`echo $ARGS | sed 's/\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\)/\1/g'`
-    OTILE_Y=`echo $ARGS | sed 's/\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\)/\2/g'`    
-    OTILE_LONMIN=`echo $ARGS | sed 's/\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\)/\4/g'`       
-    OTILE_LATMIN=`echo $ARGS | sed 's/\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\)/\5/g'`
-    OTILE_LONMAX=`echo $ARGS | sed 's/\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\)/\6/g'`                                                                                                  
-    OTILE_LATMAX=`echo $ARGS | sed 's/\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\),\([0-9]*\)/\7/g'`                                                                                                  
-    OTILE_ARGFNAME=args/args.$OZLEVEL.$OTILE_X.$OTILE_Y.lst
-    OTILE_MERGELIST=args/tiles.$OZLEVEL.$OTILE_X.$OTILE_Y.lst
-    OTILE=sampleImages/Z.$OZLEVEL.$IZLEVEL/Z.$OZLEVEL.$IZLEVEL.$OTILE_X.$OTILE_Y.tif
-    
-    nodejs get.GoogleSat.js $OTILE_LONMIN $OTILE_LATMIN $OTILE_LONMAX $OTILE_LATMAX $IZLEVEL > $OTILE_ARGFNAME
-    awk 'BEGIN{FS=","} {printf("GMap/gtiff/18/%d/Z18.%d.%d.tif\n",$1,$1,$2)}' $OTILE_ARGFNAME > $OTILE_MERGELIST
-    gdalbuildvrt -input_file_list $OTILE_MERGELIST -overwrite $OTILE_MERGELIST.vrt
-    gdal_translate -co compress=deflate $OTILE_MERGELIST.vrt $OTILE
-done                                                                                                           
+nodejs get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $OZLEVEL > $ARGFNAME
+parallel -j 7 ./mergeTiles.sub.sh < $ARGFNAME
