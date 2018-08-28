@@ -1,5 +1,6 @@
 # /bin/bash -x
 
+# The script needs MapProxy 1.8
 # Extent: (106.368585, 16.628645) - (106.421923 16.662368)
 #XMIN=11647846.90790291503071785
 #XMAX=11899688.91161549836397171
@@ -34,7 +35,13 @@ for ARGS in `cat args.lst`;do
 	export TILE_YMIN=`echo $TILE_LONMIN $TILE_LATMIN | proj $EPSG3857 | awk '{print $2}'`
 	export TILE_XMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $1}'`
 	export TILE_YMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $2}'`
+<<<<<<< HEAD
 #if [ ! -e  GMap/gtiff/$ZLEVEL/$TILEX/Z$ZLEVEL.$TILEX.$TILEY.tif ]; then
 	make -BR GMap/gtiff/$ZLEVEL/$TILEX/Z$ZLEVEL.$TILEX.$TILEY.tif
 #    fi
+=======
+    if [ ! -e  GMap/png/$ZLEVEL/$TILEX/Z$ZLEVEL.$TILEX.$TILEY.png ]; then
+	make -R GMap/gtiff/$ZLEVEL/$TILEX/Z$ZLEVEL.$TILEX.$TILEY.tif
+    fi
+>>>>>>> cec30a871cf2ffb59d3b9768d9e5dcafc3d91435
 done
