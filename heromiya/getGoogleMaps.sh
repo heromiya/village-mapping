@@ -34,7 +34,7 @@ for ARGS in `cat args.lst`;do
 	export TILE_YMIN=`echo $TILE_LONMIN $TILE_LATMIN | proj $EPSG3857 | awk '{print $2}'`
 	export TILE_XMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $1}'`
 	export TILE_YMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $2}'`
-    if [ ! -e  GMap/gtiff/$ZLEVEL/$TILEX/Z$ZLEVEL.$TILEX.$TILEY.tif ]; then
-	make -R GMap/gtiff/$ZLEVEL/$TILEX/Z$ZLEVEL.$TILEX.$TILEY.tif
-    fi
+#if [ ! -e  GMap/gtiff/$ZLEVEL/$TILEX/Z$ZLEVEL.$TILEX.$TILEY.tif ]; then
+	make -BR GMap/gtiff/$ZLEVEL/$TILEX/Z$ZLEVEL.$TILEX.$TILEY.tif
+#    fi
 done
