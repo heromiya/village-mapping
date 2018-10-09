@@ -23,7 +23,10 @@ export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.
 export WIDTH=256
 export HEIGHT=256
 
-nodejs get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args.lst
+nodejs --max_old_space_size=16384 get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args.lst
+parallel --jobs 16 ./getGoogleMaps.Sub.sh {} < args.lst
+
+:<<'#EOF'
 for ARGS in `cat args.lst`;do
 	export TILEX=`echo $ARGS |cut -d ',' -f 1`
 	export TILEY=`echo $ARGS |cut -d ',' -f 2`
@@ -39,3 +42,4 @@ for ARGS in `cat args.lst`;do
 	make -BR GMap/gtiff/$ZLEVEL/$TILEX/Z$ZLEVEL.$TILEX.$TILEY.tif
 #    fi
 done
+#EOF
