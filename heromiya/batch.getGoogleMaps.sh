@@ -9,9 +9,9 @@
 
 # Mozanbique
 #./getGoogleMaps.sh 30.2 41.0 -26.9 -10.4 17
-./getGoogleMaps.sh 30.2 35.6 -26.9 -18.65 17
-./getGoogleMaps.sh 35.6 41.0 -26.9 -18.65 17
-./getGoogleMaps.sh 30.2 35.6 -18.65 -10.4 17
+#./getGoogleMaps.sh 30.2 35.6 -26.9 -18.65 17
+#./getGoogleMaps.sh 35.6 41.0 -26.9 -18.65 17
+#./getGoogleMaps.sh 30.2 35.6 -18.65 -10.4 17
 ./getGoogleMaps.sh 35.6 41.0 -18.65 -10.4 17
 
 # Sri lanka
@@ -19,11 +19,11 @@
 
 # Mozanbique
 #./getGoogleMaps.sh 30.2 41.0 -26.9 -10.4 18
-./getGoogleMaps.sh 30.2 35.6 -26.9 -18.65 18
-./getGoogleMaps.sh 35.6 41.0 -26.9 -18.65 18
-./getGoogleMaps.sh 30.2 35.6 -18.65 -10.4 18
-./getGoogleMaps.sh 35.6 41.0 -18.65 -10.4 18
+#./getGoogleMaps.sh 30.2 35.6 -26.9 -18.65 18
+#./getGoogleMaps.sh 35.6 41.0 -26.9 -18.65 18
+#./getGoogleMaps.sh 30.2 35.6 -18.65 -10.4 18
+#./getGoogleMaps.sh 35.6 41.0 -18.65 -10.4 18
 
 
 # Sri lanka
-./getGoogleMaps.sh 79.7 81.9 5.9 9.85 18
+#./getGoogleMaps.sh 79.7 81.9 5.9 9.85 18
