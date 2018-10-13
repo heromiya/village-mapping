@@ -24,4 +24,5 @@ Bing/gtiff/$(ZLEVEL)/a$(QKEY).tif.info: Bing/gtiff/$(ZLEVEL)/a$(QKEY).tif
 
 
 $(MERGEDTILE): $(MERGEINPUT)
+	mkdir -p `dirname $@`
 	gdalwarp $+ $@

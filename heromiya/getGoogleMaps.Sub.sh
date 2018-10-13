@@ -14,8 +14,8 @@ export TILE_YMIN=`echo $TILE_LONMIN $TILE_LATMIN | proj $EPSG3857 | awk '{print 
 export TILE_XMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $1}'`
 export TILE_YMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $2}'`
 
-if [ ! -e GMap/gtiff/${ZLEVEL}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif ]; then
-    make GMap/gtiff/${ZLEVEL}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
+if [ ! -e GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif ]; then
+    make GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
 fi
 
 exit 
