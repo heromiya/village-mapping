@@ -1,4 +1,5 @@
 # getGoogleMaps.sh $LONMIN $LONMAX $LATMIN $LATMAX $ZLEVEL
+export NPROC=128
 
 #./getGoogleMaps.sh 105.6371 106.7222 16.0363 16.9907 17
 #./getGoogleMaps.sh 105.6371 106.7222 16.0363 16.9907 18
