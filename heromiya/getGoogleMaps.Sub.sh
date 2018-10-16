@@ -21,6 +21,9 @@ PNG=GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png
 GTIFF=GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
 if [ ! -e $GTIFF ]; then
     if [ -e $PNG ]; then
+	if [ ! -s $PNG ]; then
+	    rm -f $PNG
+	fi
 	if [ ! $(stat --printf="%s" $PNG) -eq 353 ]; then
 	    make $GTIFF
 	fi
