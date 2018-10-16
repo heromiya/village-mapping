@@ -11,6 +11,7 @@ TILE_LONMAX=`echo $ARGS |cut -d ',' -f 6`
 TILE_LATMAX=`echo $ARGS |cut -d ',' -f 7`
 export TILE_XMIN=`echo $TILE_LONMIN $TILE_LATMIN | proj $EPSG3857 | awk '{print $1}'`
 export TILE_YMIN=`echo $TILE_LONMIN $TILE_LATMIN | proj $EPSG3857 | awk '{print $2}'`
+
 export TILE_XMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $1}'`
 export TILE_YMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $2}'`
 
@@ -18,10 +19,17 @@ export TILE_YMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print 
 #if [ $? -eq 1 ]; then
 PNG=GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png
 GTIFF=GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
-if [ ! -e $GTIFF -a  ! $(stat --printf="%s" $PNG) -eq 353 ]; then
-	make $GTIFF
-    #rsync -e "ssh -p 20022 heromiya@hawaii.csis.u-tokyo.ac.jp" -avz GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif heromiya@hawaii.csis.u-tokyo.ac.jp:/mnt/lv0/GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
-    #rsync -e "ssh -p 20022 heromiya@hawaii.csis.u-tokyo.ac.jp" -avz GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png heromiya@hawaii.csis.u-tokyo.ac.jp:/mnt/lv0/GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png
+if [ ! -e $GTIFF ]; then
+    if [ -e $PNG ]; then
+	if [ ! $(stat --printf="%s" $PNG) -eq 353 ]; then
+	    make $GTIFF
+	fi
+    else
+	    make $GTIFF
+    fi
 fi
 
 exit 
+
+    #rsync -e "ssh -p 20022 heromiya@hawaii.csis.u-tokyo.ac.jp" -avz GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif heromiya@hawaii.csis.u-tokyo.ac.jp:/mnt/lv0/GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
+    #rsync -e "ssh -p 20022 heromiya@hawaii.csis.u-tokyo.ac.jp" -avz GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png heromiya@hawaii.csis.u-tokyo.ac.jp:/mnt/lv0/GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png
