@@ -16,9 +16,10 @@ export TILE_YMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print 
 
 #ssh -p 20022  heromiya@hawaii.csis.u-tokyo.ac.jp "test -e /mnt/lv0/GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png"
 #if [ $? -eq 1 ]; then
-
-if [ ! -e GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png ]; then
-    make GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
+PNG=GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png
+GTIFF=GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
+if [ ! -e $GTIFF -a  ! $(stat --printf="%s" $PNG) -eq 353 ]; then
+	make $GTIFF
     #rsync -e "ssh -p 20022 heromiya@hawaii.csis.u-tokyo.ac.jp" -avz GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif heromiya@hawaii.csis.u-tokyo.ac.jp:/mnt/lv0/GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
     #rsync -e "ssh -p 20022 heromiya@hawaii.csis.u-tokyo.ac.jp" -avz GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png heromiya@hawaii.csis.u-tokyo.ac.jp:/mnt/lv0/GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png
 fi
