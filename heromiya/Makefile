@@ -6,7 +6,7 @@ GMap/$(FORMAT)/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).$(FORMAT):
 
 GMap/gtiff/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif: GMap/$(FORMAT)/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).$(FORMAT)
 	mkdir -p `dirname $@`
-	gdal_translate -a_srs EPSG:3857 -a_ullr $(TILE_XMIN) $(TILE_YMAX) $(TILE_XMAX) $(TILE_YMIN) -co COMPRESS=Deflate -expand rgb $< $@
+	gdal_translate -q -a_srs EPSG:3857 -a_ullr $(TILE_XMIN) $(TILE_YMAX) $(TILE_XMAX) $(TILE_YMIN) -co COMPRESS=Deflate -expand rgb $< $@
 
 GMap/gtiff/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif.info: GMap/gtiff/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif
 	mkdir -p `dirname $@`
