@@ -15,4 +15,4 @@ export WIDTH=256
 export HEIGHT=256
 
 nodejs --max_old_space_size=65536 get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args.lst
-parallel --jobs $NPROC ./getGoogleMaps.Sub.sh {} < args.lst
+parallel -j0 ./getGoogleMaps.Sub.sh {} < args.lst
