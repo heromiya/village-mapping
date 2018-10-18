@@ -24,7 +24,7 @@ if [ ! -e $GTIFF ]; then
 	rm -f $PNG
     fi
     if [ -e $PNG ]; then
-	if [ ! $(stat --printf="%s" $PNG) -eq 353 ]; then
+	if [ $(stat --printf="%s" $PNG) -gt 353 ]; then
 	    make $GTIFF
 	fi
     else
