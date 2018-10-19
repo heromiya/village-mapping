@@ -1,4 +1,4 @@
-# /bin/bash -x
+#! /bin/bash
 
 # The script needs MapProxy 1.9
 
@@ -15,4 +15,4 @@ export WIDTH=256
 export HEIGHT=256
 
 nodejs --max_old_space_size=65536 get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args.lst
-parallel -j0 ./getGoogleMaps.Sub.sh {} < args.lst
+parallel --nice 10 --progress ./getGoogleMaps.Sub.sh {} < args.lst
