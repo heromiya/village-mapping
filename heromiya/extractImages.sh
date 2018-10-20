@@ -8,9 +8,9 @@ export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.
 export WIDTH=256
 export HEIGHT=256
 
-psql suvannaket -tc "SELECT qkey from grid where validate = 1 or validate = 2;" | sort > completedSamples.lst
-cat completedSamples.lst | xargs parallel --joblog log/extractImages.sub.sh.$$ "./extractImages.sub.sh" ::: 
-
+psql suvannaket -tc "SELECT qkey from grid where validate >= 1 AND validate <= 3;" | sort | uniq > completedSamples.lst
+cat completedSamples.lst | xargs parallel  "./extractImages.sub.sh" ::: 
+#--joblog log/extractImages.sub.sh.$$
 #for QKEY in `cat completedSamples.lst`; do
 #done
 
