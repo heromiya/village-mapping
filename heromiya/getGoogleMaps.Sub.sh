@@ -9,14 +9,28 @@ TILE_LONMIN=`echo $ARGS |cut -d ',' -f 4`
 TILE_LATMIN=`echo $ARGS |cut -d ',' -f 5`
 TILE_LONMAX=`echo $ARGS |cut -d ',' -f 6`
 TILE_LATMAX=`echo $ARGS |cut -d ',' -f 7`
-export TILE_XMIN=`echo $TILE_LONMIN $TILE_LATMIN | proj $EPSG3857 | awk '{print $1}'`
-export TILE_YMIN=`echo $TILE_LONMIN $TILE_LATMIN | proj $EPSG3857 | awk '{print $2}'`
-export TILE_XMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $1}'`
-export TILE_YMAX=`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857 | awk '{print $2}'`
 
+TILE_XYMIN=(`echo $TILE_LONMIN $TILE_LATMIN | proj $EPSG3857`)
+export TILE_XMIN=${TILE_XYMIN[0]}
+export TILE_YMIN=${TILE_XYMIN[1]}
 
-if [ ! -e GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png ]; then
-    make GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
+TILE_XYMAX=(`echo $TILE_LONMAX $TILE_LATMAX | proj $EPSG3857`)
+export TILE_XMAX=${TILE_XYMAX[0]}
+export TILE_YMAX=${TILE_XYMAX[1]}
+
+PNG=GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png
+GTIFF=GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
+if [ ! -e $GTIFF ]; then
+    if [ ! -s $PNG ]; then
+	rm -f $PNG
+    fi
+    if [ -e $PNG ]; then
+	if [ $(stat --printf="%s" $PNG) -gt 353 ]; then
+	    make $GTIFF
+	fi
+    else
+	    make $GTIFF
+    fi
 fi
 
 exit 
