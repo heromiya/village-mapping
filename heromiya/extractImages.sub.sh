@@ -1,21 +1,22 @@
+#! /bin/bash
 QKEY=$1
 
-COORDS=`psql suvannaket -tc "select st_xmin(geom)+0.0005,st_ymin(geom)+0.0005,st_xmax(geom)-0.0005,st_ymax(geom)-0.0005 from grid where qkey = '$QKEY' limit 1;"`
+COORDS=`psql suvannaket -tc "select st_xmin(geom),st_ymin(geom),st_xmax(geom),st_ymax(geom) from grid where qkey = '$QKEY' limit 1;"`
 LONMIN=`echo $COORDS | cut -d '|' -f 1`
 LATMIN=`echo $COORDS | cut -d '|' -f 2`
 LONMAX=`echo $COORDS | cut -d '|' -f 3`
 LATMAX=`echo $COORDS | cut -d '|' -f 4`
-echo $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL
+
 ARGLST=$(mktemp) 
-#rm -f args1.lst
-nodejs get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > $ARGLST
-parallel ./getGoogleMaps.Sub.sh :::: $ARGLST
+
+nodejs get.GoogleSat.js $(echo "scale=10;$LONMIN+0.0005"|bc) $(echo "scale=10;$LATMIN+0.0005"|bc) $(echo "scale=10;$LONMAX-0.0005"|bc) $(echo "scale=10;$LATMAX-0.0005"|bc) $ZLEVEL > $ARGLST
+parallel --nice 10 --progress ./getGoogleMaps.Sub.sh :::: $ARGLST
 #:<<"#EOF"
 
 export MERGEDTILE=sampleImages/GMap/${ZLEVEL}/a${QKEY}-Z${ZLEVEL}.tif
 if [ ! -e $MERGEDTILE ]; then
     export MERGEINPUT="`awk 'BEGIN{FS=\",\"}{printf(\"GMap/gtiff/%i/%i/Z%i.%i.%i.tif \",$3,$1,$3,$1,$2)}' $ARGLST`"
-    make $MERGEDTILE
+    make -s $MERGEDTILE
 fi
 
 eval `gdalinfo $MERGEDTILE | grep "Pixel Size" | sed 's/ //g;s/,/ /;s/-//'`
@@ -27,11 +28,11 @@ YMAX=`gdalinfo $MERGEDTILE | grep "Upper Right" | tr -d " " | sed 's/UpperRight(
 mkdir -p  sampleImages/vi/${ZLEVEL}
 VIOUT=sampleImages/vi/${ZLEVEL}/r${QKEY}-Z${ZLEVEL}.tif
 if [ ! -e $VIOUT ]; then
-    TMP=`mktemp`.$QKEY.`date +%F-%T`.sqlite
+    TMP=`mktemp -d`/$QKEY.`date +%F-%T`.sqlite
     ogr2ogr -select digitized_status -spat $LONMIN $LATMIN $LONMAX $LATMAX -t_srs EPSG:3857 -f SQLite $TMP PG:dbname=suvannaket building
     gdal_rasterize -co compress=deflate -ot Byte -a_srs EPSG:3857 -burn 1 -tr ${PixelSize[0]} ${PixelSize[1]} -te $XMIN $YMIN $XMAX $YMAX $TMP $VIOUT
 
 fi
 #EOF
 
-rm -f $ARGLST $TMP
+#rm -f $ARGLST $TMP
