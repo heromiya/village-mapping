@@ -25,7 +25,7 @@ fi
 TILE=($(echo "var tilebelt = require('tilebelt'); console.log(tilebelt.quadkeyToTile('$QKEY'))" | node |tr -d "[],"))
 
 export MERGEDTILE=sampleImages/GMap/${TILE[2]}/a${QKEY}-Z${TILE[2]}.tif
-ln -sf $(pwd)/GMap/gtiff/${TILE[2]}/${TILE[0]}/Z${TILE[2]}.${TILE[0]}.${TILE[1]}.tif $MERGEDTILE
+ln -f $(pwd)/GMap/gtiff/${TILE[2]}/${TILE[0]}/Z${TILE[2]}.${TILE[0]}.${TILE[1]}.tif $MERGEDTILE
 
 eval `gdalinfo $MERGEDTILE | grep "Pixel Size" | sed 's/ //g;s/,/ /;s/-//'`
 XMIN=`gdalinfo $MERGEDTILE | grep "Lower Left" | tr -d " " | sed 's/LowerLeft(\([0-9.-]*\),\([0-9.-]*\)).*/\1/;'`
@@ -35,7 +35,7 @@ YMAX=`gdalinfo $MERGEDTILE | grep "Upper Right" | tr -d " " | sed 's/UpperRight(
 
 mkdir -p  sampleImages/vi/${ZLEVEL}
 VIOUT=sampleImages/vi/${ZLEVEL}/r${QKEY}-Z${ZLEVEL}.tif
-rm -f $VIOUT
+#rm -f $VIOUT
 if [ ! -e $VIOUT ]; then
     TMP=`mktemp -d`/$QKEY.sqlite
     ogr2ogr -select digitized_status -spat $LONMIN $LATMIN $LONMAX $LATMAX -t_srs EPSG:3857 -f SQLite $TMP PG:dbname=suvannaket building
