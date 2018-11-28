@@ -8,7 +8,7 @@ export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.
 export WIDTH=256
 export HEIGHT=256
 
-psql suvannaket -Atc "SELECT qkey from grid where validate >= 1 AND validate <= 3;" | sort | uniq > completedSamples.lst
+psql suvannaket -Atc "SELECT qkey from grid_18 where qkey = '300121323023311000';" | sort | uniq > completedSamples.lst
 parallel --nice 10 --progress ./extractImages.sub.sh :::: completedSamples.lst 
 
 exit 0

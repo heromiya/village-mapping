@@ -2,7 +2,7 @@
 QKEY=$1
 
 
-COORDS=`psql suvannaket -qAtc "select st_xmin(geom),st_ymin(geom),st_xmax(geom),st_ymax(geom) from grid_17 where qkey = '$QKEY' limit 1;"`
+COORDS=`psql suvannaket -qAtc "select st_xmin(geom),st_ymin(geom),st_xmax(geom),st_ymax(geom) from grid_${ZLEVEL} where qkey = '$QKEY' limit 1;"`
 LONMIN=`echo $COORDS | cut -d '|' -f 1`
 LATMIN=`echo $COORDS | cut -d '|' -f 2`
 LONMAX=`echo $COORDS | cut -d '|' -f 3`
@@ -14,7 +14,6 @@ ARGLST=$(mktemp)
 
 nodejs get.GoogleSat.js $(echo "scale=10;$LONMIN+0.0005"|bc) $(echo "scale=10;$LATMIN+0.0005"|bc) $(echo "scale=10;$LONMAX-0.0005"|bc) $(echo "scale=10;$LATMAX-0.0005"|bc) $ZLEVEL > $ARGLST
 parallel --nice 10 --progress ./getGoogleMaps.Sub.sh :::: $ARGLST
-#:<<"#EOF"
 
 export MERGEDTILE=sampleImages/GMap/${ZLEVEL}/a${QKEY}-Z${ZLEVEL}.tif
 if [ ! -e $MERGEDTILE ]; then
@@ -22,6 +21,7 @@ if [ ! -e $MERGEDTILE ]; then
     make -s $MERGEDTILE
 fi
 #EOF
+
 TILE=($(echo "var tilebelt = require('tilebelt'); console.log(tilebelt.quadkeyToTile('$QKEY'))" | node |tr -d "[],"))
 
 export MERGEDTILE=sampleImages/GMap/${TILE[2]}/a${QKEY}-Z${TILE[2]}.tif
