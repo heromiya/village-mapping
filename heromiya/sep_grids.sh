@@ -23,7 +23,7 @@ for ZLEVEL in 17 18; do
     rm -f $TMPSQL
     export ZLEVEL
 
-    echo "DROP TABLE IF EXISTS grid_${ZLEVEL}; CREATE TABLE grid_${ZLEVEL} (qkey varchar(254), validate smallint); SELECT AddGeometryColumn('grid_${ZLEVEL}','geom',4326,'MultiPolygon',2);" > $TMPSQL
+    echo "DROP TABLE IF EXISTS grid_${ZLEVEL}; CREATE TABLE grid_${ZLEVEL} (qkey varchar(254), validate smallint); SELECT AddGeometryColumn('grid_${ZLEVEL}','geom',4326,'Polygon',2);" > $TMPSQL
     parallel --nice 10 --progress sub {} ::: $(psql -h guam suvannaket -qAtc "select qkey from grid where validate = 2")
     psql -h guam suvannaket -f $TMPSQL
 done
