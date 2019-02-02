@@ -20,6 +20,29 @@ export TILE_YMAX=${TILE_XYMAX[1]}
 
 PNG=GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png
 GTIFF=GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
+
+if [ -e $PNG ]; then
+    if [ ! -s $PNG ]; then
+	rm -f  $PNG
+    fi
+fi
+if [ ! -e $GTIFF ]; then
+    if [ -e $PNG ]; then
+
+	if [ $(stat --printf="%s" $PNG) -gt 353 ]; then
+	    make -s $GTIFF
+	else
+	    grep "invalid bbox" $PNG
+	    if [ $? -eq 0 ]; then
+		rm -f $PNG
+		make $GTIFF
+	    fi
+	fi
+    else
+	make -s $GTIFF
+    fi
+fi
+:<<'#EOF'
 if [ ! -e $GTIFF ]; then
     if [ ! -s $PNG ]; then
 	rm -f $PNG
@@ -32,5 +55,6 @@ if [ ! -e $GTIFF ]; then
 	    make $GTIFF
     fi
 fi
+#EOF
 
-exit 
+exit 0

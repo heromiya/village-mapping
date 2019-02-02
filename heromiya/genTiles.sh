@@ -1,10 +1,10 @@
 #! /bin/bash
 
-ZLEVEL=15 # Tile size is 1223 x 1223 m
+ZLEVEL=17 # Tile size is 307 x 307 m
 PREREQ="var tilebelt = require('tilebelt');"
 DB=geonames.sqlite
 
-:<<'#EOF'
+#:<<'#EOF'
 spatialite $DB <<EOF
 DELETE FROM geometry_columns WHERE f_table_name = 'tiles';
 DROP TABLE IF EXISTS tiles;
