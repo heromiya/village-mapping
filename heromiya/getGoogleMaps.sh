@@ -14,5 +14,5 @@ export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.
 export WIDTH=256
 export HEIGHT=256
 
-node get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args.lst
+node --max-old-space-size=8192  get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > args.lst
 parallel --nice 10 --progress ./getGoogleMaps.Sub.sh {} :::: args.lst

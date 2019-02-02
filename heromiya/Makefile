@@ -1,7 +1,7 @@
 FORMAT = png
 GMap/$(FORMAT)/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).$(FORMAT):
 	mkdir -p `dirname $@`
-	wget -q -O $@ "http://127.0.0.1:3857/service?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&BBOX=$(TILE_XMIN),$(TILE_YMIN),$(TILE_XMAX),$(TILE_YMAX)&SRS=EPSG:3857&WIDTH=$(WIDTH)&HEIGHT=$(HEIGHT)&LAYERS=Google%20Maps%20Satellite&STYLES=&FORMAT=image/$(FORMAT)"
+	wget -q -O $@ "http://guam.csis.u-tokyo.ac.jp:3857/service?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&BBOX=$(TILE_XMIN),$(TILE_YMIN),$(TILE_XMAX),$(TILE_YMAX)&SRS=EPSG:3857&WIDTH=$(WIDTH)&HEIGHT=$(HEIGHT)&LAYERS=Google%20Maps%20Satellite&STYLES=&FORMAT=image/$(FORMAT)"
 
 GMap/gtiff/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif: GMap/$(FORMAT)/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).$(FORMAT)
 	mkdir -p `dirname $@`
@@ -25,3 +25,6 @@ Bing/gtiff/$(ZLEVEL)/a$(QKEY).tif.info: Bing/gtiff/$(ZLEVEL)/a$(QKEY).tif
 $(MERGEDTILE): $(MERGEINPUT)
 	mkdir -p `dirname $@`
 	gdalwarp -q -co compress=deflate $+ $@
+
+completedSamples.d/completedSamples.$(GADM_GID).Z$(ZLEVEL).lst:
+	psql -h guam -d suvannaket -Atc "SELECT qkey from grid_$(ZLEVEL) where ST_Intersects(geom, (SELECT wkb_geometry FROM gadm36_level1 WHERE gid_1 ='$(GADM_GID)'));" | sort | uniq > $@
