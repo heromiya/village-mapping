@@ -12,7 +12,7 @@ function sub() {
 	for CHILD in $(parallel echo $(echo $(for i in $(seq 1 $DIFF_ZLEVEL); do printf "{$i}"; done) $(for i in $(seq 1 $DIFF_ZLEVEL); do printf " ::: 0 1 2 3"; done))); do
 	    CHILDQKEY=${INQKEY}${CHILD}
 	    GEOM=$(echo "var tilebelt=require('@mapbox/tilebelt');console.log(tilebelt.tileToBBOX(tilebelt.quadkeyToTile('$CHILDQKEY')))" | node | sed 's/\[/ST_MakeEnvelope(/; s/\]/, 4326)/')
-	    echo "INSERT INTO grid_${ZLEVEL} (qkey, geom, validate) VALUES ('$CHILDQKEY', $GEOM, $VALIDATE );" > $OUTSQL 
+	    echo "INSERT INTO grid_${ZLEVEL} (qkey, geom, validate) VALUES ('$CHILDQKEY', $GEOM, $VALIDATE );" >> $OUTSQL 
 	done
     fi
 }
