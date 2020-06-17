@@ -35,7 +35,7 @@ if [ ! -e $GTIFF ]; then
 	    grep "invalid bbox" $PNG
 	    if [ $? -eq 0 ]; then
 		rm -f $PNG
-		make $GTIFF
+		make -s $GTIFF
 	    fi
 	fi
     else
