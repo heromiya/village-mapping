@@ -2,9 +2,8 @@
 
 ZLEVEL=17 # Tile size is 307 x 307 m
 PREREQ="var tilebelt = require('tilebelt');"
-DB=geonames.sqlite
+DB=out.sqlite
 
-#:<<'#EOF'
 spatialite $DB <<EOF
 DELETE FROM geometry_columns WHERE f_table_name = 'tiles';
 DROP TABLE IF EXISTS tiles;
@@ -37,7 +36,7 @@ for ROI in `cat ROI.lst | head -n 1`; do
 		done
 	done
 done
-#EOF
+:<<'#EOF'
 
 spatialite $DB <<EOF
 DELETE FROM geometry_columns WHERE f_table_name = 'target_tiles';
@@ -89,4 +88,7 @@ INSERT INTO target_tiles_mm (qkey, the_geom) SELECT DISTINCT tiles.qkey,tiles.th
 EOF
 
 ogr2ogr -overwrite target_tiles geonames.sqlite target_tiles_la target_tiles_th target_tiles_ke target_tiles_mm
+
+#EOF
+
 exit 0

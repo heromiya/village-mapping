@@ -1,16 +1,11 @@
 FORMAT = tif
 #GMap/$(FORMAT)/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).$(FORMAT):
-GMap/gtiff/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif:
+GMap/$(LAYER_NAME)/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif:
 	mkdir -p `dirname $@`
-	wget -q -O $@ "http://hawaii.csis.u-tokyo.ac.jp:3857/service?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=Google%20Maps%20Satellite&STYLES=&FORMAT=image/geotiff&CRS=EPSG:3857&BBOX=$(TILE_XMIN),$(TILE_YMIN),$(TILE_XMAX),$(TILE_YMAX)&WIDTH=$(WIDTH)&HEIGHT=$(HEIGHT)"
+	wget -q -O $(WORKDIR)/Z$(ZLEVEL).$(TILEX).$(TILEY).tmp.tif "http://hawaii.csis.u-tokyo.ac.jp:3857/service?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=$(LAYER_NAME)&STYLES=&FORMAT=image/geotiff&CRS=EPSG:3857&BBOX=$(TILE_XMIN),$(TILE_YMIN),$(TILE_XMAX),$(TILE_YMAX)&WIDTH=$(WIDTH)&HEIGHT=$(HEIGHT)"
+	gdal_translate -q -co compress=deflate $(WORKDIR)/Z$(ZLEVEL).$(TILEX).$(TILEY).tmp.tif $@
 
-#	wget -q -O $@ "http://hawaii.csis.u-tokyo.ac.jp:3857/service?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&BBOX=$(TILE_XMIN),$(TILE_YMIN),$(TILE_XMAX),$(TILE_YMAX)&SRS=EPSG:3857&WIDTH=$(WIDTH)&HEIGHT=$(HEIGHT)&LAYERS=Google%20Maps%20Satellite&STYLES=&FORMAT=image/$(FORMAT)"
-
-#GMap/gtiff/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif: GMap/$(FORMAT)/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).$(FORMAT)
-#	mkdir -p `dirname $@`
-#	gdal_translate -q -a_srs EPSG:3857 -a_ullr $(TILE_XMIN) $(TILE_YMAX) $(TILE_XMAX) $(TILE_YMIN) -co COMPRESS=Deflate -expand rgb $< $@
-
-GMap/gtiff/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif.info: GMap/gtiff/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif
+GMap/$(LAYER_NAME)/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif.info: GMap/$(LAYER_NAME)/$(ZLEVEL)/$(TILEX)/Z$(ZLEVEL).$(TILEX).$(TILEY).tif
 	mkdir -p `dirname $@`
 	gdalinfo -mm -stats -hist -checksum -proj4 $< > $@ 2>&1
 

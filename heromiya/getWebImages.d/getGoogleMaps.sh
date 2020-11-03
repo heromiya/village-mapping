@@ -9,6 +9,9 @@ LATMIN=$3
 LATMAX=$4
 
 export ZLEVEL=$5
+export LAYER_NAME=$6
+
+#export RES=0.2986
 
 export EPSG4326="+proj=longlat +datum=WGS84 +no_defs"
 export EPSG3857="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs"
@@ -33,8 +36,8 @@ getGMap(){
     export TILE_XMAX=${TILE_XYMAX[0]}
     export TILE_YMAX=${TILE_XYMAX[1]}
 
-    PNG=GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png
-    GTIFF=GMap/gtiff/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
+#    PNG=GMap/png/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.png
+    GTIFF=GMap/${LAYER_NAME}/${ZLEVEL}/${TILEX}/Z${ZLEVEL}.${TILEX}.${TILEY}.tif
 
 #    if [ -e $PNG ]; then
 #	if [ ! -s $PNG ]; then
@@ -61,10 +64,8 @@ getGMap(){
 export -f getGMap
 
 node --max-old-space-size=8192  get.GoogleSat.js $LONMIN $LATMIN $LONMAX $LATMAX $ZLEVEL > $WORKDIR/args.lst
-parallel --nice 10 --progress getGMap {} :::: $WORKDIR/args.lst
-#for ARG in $(cat $WORKDIR/args.lst | head -n 10); do
-#    ./getGoogleMaps.Sub.sh $ARG
-#done
+parallel --nice 10 --bar getGMap {} :::: $WORKDIR/args.lst
+#for ARG in $(cat $WORKDIR/args.lst | head -n 10); do getGMap $ARG; fdone
 
 
 #GMap/gtiff/19/312689/Z19.312689.291268.tif
