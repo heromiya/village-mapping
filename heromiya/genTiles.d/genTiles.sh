@@ -11,7 +11,10 @@ DELETE FROM geometry_columns WHERE f_table_name = 'tiles';
 DROP TABLE IF EXISTS tiles;
 CREATE TABLE tiles (
 	gid integer primary key AUTOINCREMENT,
-	qkey varchar(64)
+	qkey varchar(64),
+	x integer,
+	y integer,
+	z integer
 );
 SELECT AddGeometryColumn('tiles', 'the_geom' ,4326, 'POLYGON', 'XY');
 EOF
@@ -25,8 +28,7 @@ genTile(){
     TILELATMIN=`node -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[1]))"`
     TILELONMAX=`node -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[2]))"`
     TILELATMAX=`node -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[3]))"`
-    echo "INSERT INTO tiles (qkey, the_geom) VALUES ('$QKey',ST_GeomFromText('POLYGON (($TILELONMIN $TILELATMIN, $TILELONMIN $TILELATMAX, $TILELONMAX $TILELATMAX, $TILELONMAX $TILELATMIN, $TILELONMIN $TILELATMIN))', 4326));" > $WORKDIR/$XTILE.$YTILE.$ZLEVEL.sql
-    #| spatialite $DB
+    echo "INSERT INTO tiles (qkey, the_geom, x, y, z) VALUES ('$QKey',ST_GeomFromText('POLYGON (($TILELONMIN $TILELATMIN, $TILELONMIN $TILELATMAX, $TILELONMAX $TILELATMAX, $TILELONMAX $TILELATMIN, $TILELONMIN $TILELATMIN))', 4326), $XTILE, $YTILE, $ZLEVEL);" > $WORKDIR/$XTILE.$YTILE.$ZLEVEL.sql
 }
 export -f genTile
 
