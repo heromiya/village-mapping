@@ -1,0 +1,17 @@
+<GDAL_WMTS>
+  <GetCapabilitiesUrl>http://hawaii.csis.u-tokyo.ac.jp:3857/wmts/1.0.0/WMTSCapabilities.xml</GetCapabilitiesUrl>
+  <Layer>GoogleMapsSatellite200712</Layer>
+  <Style>default</Style>
+  <TileMatrixSet>GLOBAL_MERCATOR</TileMatrixSet>
+  <DataWindow>
+    <UpperLeftX>-20037508.3428</UpperLeftX>
+    <UpperLeftY>20037508.3428</UpperLeftY>
+    <LowerRightX>20037508.34259465</LowerRightX>
+    <LowerRightY>-20037508.34259465</LowerRightY>
+  </DataWindow>
+  <BandsCount>4</BandsCount>
+  <Cache />
+  <UnsafeSSL>true</UnsafeSSL>
+  <ZeroBlockHttpCodes>204,404,500</ZeroBlockHttpCodes>
+  <ZeroBlockOnServerException>true</ZeroBlockOnServerException>
+</GDAL_WMTS>

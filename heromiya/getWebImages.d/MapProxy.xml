@@ -1,0 +1,22 @@
+<GDAL_WMTS>
+  <Service name="TMS">
+    <ServerUrl>http://hawaii.csis.u-tokyo.ac.jp:3857/wmts/1.0.0/WMTSCapabilities.xml,layer=GoogleMapsSatellite200712</ServerUrl>
+  </Service>
+    <DataWindow>
+    <UpperLeftX>-20037508.343</UpperLeftX>
+    <UpperLeftY>20037508.343</UpperLeftY>
+    <LowerRightX>20037508.343</LowerRightX>
+    <LowerRightY>-20037508.343</LowerRightY>
+    <TileLevel>19</TileLevel>
+    <TileCountX>1</TileCountX>
+    <TileCountY>1</TileCountY>
+    <YOrigin>top</YOrigin>
+  </DataWindow>
+    <Projection>EPSG:900913</Projection>
+    <BlockSizeX>256</BlockSizeX>
+    <BlockSizeY>256</BlockSizeY>
+    <BandsCount>3</BandsCount>
+    <MaxConnections>5</MaxConnections>
+    <Cache />
+    <ZeroBlockHttpCodes>204,404,500</ZeroBlockHttpCodes>
+</GDAL_WMTS>
