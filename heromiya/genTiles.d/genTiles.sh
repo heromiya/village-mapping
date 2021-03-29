@@ -1,42 +1,62 @@
 #! /bin/bash
 
-ZLEVEL=17 # Tile size is 307 x 307 m
-PREREQ="var tilebelt = require('tilebelt');"
-DB=out.sqlite
+export ZLEVEL=17 # Tile size is 307 x 307 m
+export PREREQ="var tilebelt = require('@mapbox/tilebelt');"
+# See https://github.com/mapbox/tilebelt and https://nodejs.org/en/download/ for installation.
+export DB=out.sqlite
 
+rm -f $DB
 spatialite $DB <<EOF
 DELETE FROM geometry_columns WHERE f_table_name = 'tiles';
 DROP TABLE IF EXISTS tiles;
 CREATE TABLE tiles (
 	gid integer primary key AUTOINCREMENT,
-	qkey varchar(64)
+	qkey varchar(64),
+	x integer,
+	y integer,
+	z integer
 );
 SELECT AddGeometryColumn('tiles', 'the_geom' ,4326, 'POLYGON', 'XY');
 EOF
 
-for ROI in `cat ROI.lst | head -n 1`; do
-	LONMIN=`echo $ROI | cut -f 2 -d '|'`
-	LATMIN=`echo $ROI | cut -f 3 -d '|'`
-	LONMAX=`echo $ROI | cut -f 4 -d '|'`
-	LATMAX=`echo $ROI | cut -f 5 -d '|'`
+genTile(){
+    XTILE=$1
+    YTILE=$2
+    ZLEVEL=$3
+    QKey=`node -e "$PREREQ process.stdout.write(String(tilebelt.tileToQuadkey([$XTILE,$YTILE,$ZLEVEL])))"`
+    TILELONMIN=`node -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[0]))"`
+    TILELATMIN=`node -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[1]))"`
+    TILELONMAX=`node -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[2]))"`
+    TILELATMAX=`node -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[3]))"`
+    echo "INSERT INTO tiles (qkey, the_geom, x, y, z) VALUES ('$QKey',ST_GeomFromText('POLYGON (($TILELONMIN $TILELATMIN, $TILELONMIN $TILELATMAX, $TILELONMAX $TILELATMAX, $TILELONMAX $TILELATMIN, $TILELONMIN $TILELATMIN))', 4326), $XTILE, $YTILE, $ZLEVEL);" > $WORKDIR/$XTILE.$YTILE.$ZLEVEL.sql
+}
+export -f genTile
 
-	XTILEMIN=`iojs -e "$PREREQ Tile=tilebelt.pointToTile($LONMIN, $LATMIN, $ZLEVEL); process.stdout.write(String(Tile[0]))"`
-	YTILEMAX=`iojs -e "$PREREQ Tile=tilebelt.pointToTile($LONMIN, $LATMIN, $ZLEVEL); process.stdout.write(String(Tile[1]))"`
-	XTILEMAX=`iojs -e "$PREREQ Tile=tilebelt.pointToTile($LONMAX, $LATMAX, $ZLEVEL); process.stdout.write(String(Tile[0]))"`
-	YTILEMIN=`iojs -e "$PREREQ Tile=tilebelt.pointToTile($LONMAX, $LATMAX, $ZLEVEL); process.stdout.write(String(Tile[1]))"`
-	
+for ROI in `cat ROI.lst`; do
+    export WORKDIR=$(mktemp -d)
+	LONMIN=`echo $ROI | cut -f 1 -d '|'`
+	LATMIN=`echo $ROI | cut -f 2 -d '|'`
+	LONMAX=`echo $ROI | cut -f 3 -d '|'`
+	LATMAX=`echo $ROI | cut -f 4 -d '|'`
+
+	XTILEMIN=`node -e "$PREREQ Tile=tilebelt.pointToTile($LONMIN, $LATMIN, $ZLEVEL); process.stdout.write(String(Tile[0]))"`
+	YTILEMAX=`node -e "$PREREQ Tile=tilebelt.pointToTile($LONMIN, $LATMIN, $ZLEVEL); process.stdout.write(String(Tile[1]))"`
+	XTILEMAX=`node -e "$PREREQ Tile=tilebelt.pointToTile($LONMAX, $LATMAX, $ZLEVEL); process.stdout.write(String(Tile[0]))"`
+	YTILEMIN=`node -e "$PREREQ Tile=tilebelt.pointToTile($LONMAX, $LATMAX, $ZLEVEL); process.stdout.write(String(Tile[1]))"`
+	parallel genTile ::: $(eval echo {${XTILEMIN}..${XTILEMAX}}) ::: $(eval echo {$YTILEMIN..${YTILEMAX}}) ::: $ZLEVEL
+	cat $WORKDIR/*.sql | spatialite $DB
+	#rm -rf $WORKDIR
+done
+
+
+
+:<<'#EOF'
+
 	for XTILE in `seq $XTILEMIN $XTILEMAX`; do
 		for YTILE in `seq $YTILEMIN $YTILEMAX`; do
-			QKey=`iojs -e "$PREREQ process.stdout.write(String(tilebelt.tileToQuadkey([$XTILE,$YTILE,$ZLEVEL])))"`
-			TILELONMIN=`iojs -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[0]))"`
-			TILELATMIN=`iojs -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[1]))"`
-			TILELONMAX=`iojs -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[2]))"`
-			TILELATMAX=`iojs -e "$PREREQ BB=tilebelt.tileToBBOX([$XTILE,$YTILE,$ZLEVEL]); process.stdout.write(String(BB[3]))"`
-			echo "INSERT INTO tiles (qkey, the_geom) VALUES ('$QKey',ST_GeomFromText('POLYGON (($TILELONMIN $TILELATMIN, $TILELONMIN $TILELATMAX, $TILELONMAX $TILELATMAX, $TILELONMAX $TILELATMIN, $TILELONMIN $TILELATMIN))', 4326));" | spatialite $DB
 		done
 	done
-done
-:<<'#EOF'
+
 
 spatialite $DB <<EOF
 DELETE FROM geometry_columns WHERE f_table_name = 'target_tiles';
