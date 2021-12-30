@@ -3,7 +3,7 @@
 export ZLEVEL=17 # Tile size is 307 x 307 m
 export PREREQ="var tilebelt = require('@mapbox/tilebelt');"
 # See https://github.com/mapbox/tilebelt and https://nodejs.org/en/download/ for installation.
-export DB=out.sqlite
+export DB=MOZ.maputo.out.sqlite
 
 rm -f $DB
 spatialite $DB <<EOF
