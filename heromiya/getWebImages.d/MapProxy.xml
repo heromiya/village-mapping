@@ -1,6 +1,6 @@
 <GDAL_WMTS>
   <Service name="TMS">
-    <ServerUrl>http://hawaii.csis.u-tokyo.ac.jp:3857/wmts/1.0.0/WMTSCapabilities.xml,layer=GoogleMapsSatellite200712</ServerUrl>
+    <ServerUrl>http://192.168.0.62:3857/wmts/1.0.0/WMTSCapabilities.xml,layer=GoogleMapsSatellite200712</ServerUrl>
   </Service>
     <DataWindow>
     <UpperLeftX>-20037508.343</UpperLeftX>
